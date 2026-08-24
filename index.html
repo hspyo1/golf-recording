@@ -84,6 +84,44 @@
   <button type="button" id="score-save-btn" style="display:none">스코어 저장</button>
 </section>
 
+<section id="player-section">
+  <h2>동반자 명부 (F-04)</h2>
+  <form id="player-form">
+    <input type="hidden" id="player-id">
+    <input type="text" id="player-name" placeholder="이름 (필수)" required>
+    <input type="text" id="player-display-name" placeholder="공유용 별칭 (예: 김○○)">
+    <input type="text" id="player-relation" placeholder="관계 (친구/거래처/가족 등)">
+    <input type="text" id="player-memo" placeholder="메모">
+    <button type="submit">저장</button>
+    <button type="button" id="player-form-cancel" style="display:none">취소</button>
+  </form>
+
+  <table id="player-table">
+    <thead>
+      <tr><th>이름</th><th>별칭</th><th>관계</th><th>메모</th><th></th></tr>
+    </thead>
+    <tbody id="player-tbody"></tbody>
+  </table>
+</section>
+
+<section id="round-player-section">
+  <h2>라운드 동반자 연결 (F-04)</h2>
+  <div>
+    <label>라운드 선택
+      <select id="round-player-round-id">
+        <option value="">-- 라운드를 선택하세요 --</option>
+      </select>
+    </label>
+  </div>
+  <table id="round-player-table" style="display:none">
+    <thead>
+      <tr><th>참여</th><th>이름</th><th>총타수</th></tr>
+    </thead>
+    <tbody id="round-player-tbody"></tbody>
+  </table>
+  <button type="button" id="round-player-save-btn" style="display:none">동반자 저장</button>
+</section>
+
 <script>
 // ---------- storage 모듈: localStorage 접근은 이 블록에만 작성한다 ----------
 
@@ -595,6 +633,7 @@ function initRoundScreen() {
     document.getElementById("round-form").reset();
     alert("라운드를 저장했습니다.");
     refreshRoundOptions();
+    refreshRoundPlayerOptions();
   });
 
   refreshCourseOptions();
@@ -740,9 +779,184 @@ function initScoreScreen() {
   refreshRoundOptions();
 }
 
+// ---------- 화면: 동반자 명부 (F-04) ----------
+
+function renderPlayerList() {
+  const tbody = document.getElementById("player-tbody");
+  tbody.innerHTML = "";
+  for (const player of getAllPlayers()) {
+    const tr = document.createElement("tr");
+
+    const tdName = document.createElement("td");
+    tdName.textContent = player.name;
+    const tdDisplayName = document.createElement("td");
+    tdDisplayName.textContent = player.displayName || "";
+    const tdRelation = document.createElement("td");
+    tdRelation.textContent = player.relation || "";
+    const tdMemo = document.createElement("td");
+    tdMemo.textContent = player.memo || "";
+
+    const tdActions = document.createElement("td");
+    tdActions.className = "row-actions";
+    const editBtn = document.createElement("button");
+    editBtn.type = "button";
+    editBtn.textContent = "수정";
+    editBtn.addEventListener("click", () => startEditPlayer(player.id));
+    const deleteBtn = document.createElement("button");
+    deleteBtn.type = "button";
+    deleteBtn.textContent = "삭제";
+    deleteBtn.addEventListener("click", () => onDeletePlayer(player.id, player.name));
+    tdActions.append(editBtn, deleteBtn);
+
+    tr.append(tdName, tdDisplayName, tdRelation, tdMemo, tdActions);
+    tbody.appendChild(tr);
+  }
+  refreshRoundPlayerCheckboxState();
+}
+
+function startEditPlayer(playerId) {
+  const player = getAllPlayers().find((p) => p.id === playerId);
+  if (!player) return;
+  document.getElementById("player-id").value = player.id;
+  document.getElementById("player-name").value = player.name;
+  document.getElementById("player-display-name").value = player.displayName || "";
+  document.getElementById("player-relation").value = player.relation || "";
+  document.getElementById("player-memo").value = player.memo || "";
+  document.getElementById("player-form-cancel").style.display = "inline";
+}
+
+function resetPlayerForm() {
+  document.getElementById("player-id").value = "";
+  document.getElementById("player-name").value = "";
+  document.getElementById("player-display-name").value = "";
+  document.getElementById("player-relation").value = "";
+  document.getElementById("player-memo").value = "";
+  document.getElementById("player-form-cancel").style.display = "none";
+}
+
+function onDeletePlayer(playerId, name) {
+  if (!confirm(`"${name}"을(를) 명부에서 삭제할까요? 기존 라운드에 연결된 기록도 함께 삭제됩니다.`)) return;
+  deletePlayer(playerId);
+  renderPlayerList();
+}
+
+function initPlayerScreen() {
+  document.getElementById("player-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const name = document.getElementById("player-name").value.trim();
+    if (!name) return;
+    const displayName = document.getElementById("player-display-name").value.trim();
+    const relation = document.getElementById("player-relation").value.trim();
+    const memo = document.getElementById("player-memo").value.trim();
+    const idValue = document.getElementById("player-id").value;
+
+    if (idValue) {
+      updatePlayer(Number(idValue), name, displayName, relation, memo);
+    } else {
+      addPlayer(name, displayName, relation, memo);
+    }
+    resetPlayerForm();
+    renderPlayerList();
+  });
+
+  document.getElementById("player-form-cancel").addEventListener("click", resetPlayerForm);
+
+  renderPlayerList();
+}
+
+// ---------- 화면: 라운드 동반자 연결 (F-04) ----------
+
+function refreshRoundPlayerOptions() {
+  const select = document.getElementById("round-player-round-id");
+  const prevValue = select.value;
+  select.innerHTML = '<option value="">-- 라운드를 선택하세요 --</option>';
+  for (const round of getAllRounds()) {
+    const option = document.createElement("option");
+    option.value = round.id;
+    option.textContent = roundLabel(round);
+    select.appendChild(option);
+  }
+  if (prevValue) select.value = prevValue;
+}
+
+function refreshRoundPlayerCheckboxState() {
+  const roundId = Number(document.getElementById("round-player-round-id").value);
+  if (!roundId) return;
+  loadRoundPlayerEditor(roundId);
+}
+
+function loadRoundPlayerEditor(roundId) {
+  const players = getAllPlayers();
+  const linked = getRoundPlayers(roundId);
+  const tbody = document.getElementById("round-player-tbody");
+  tbody.innerHTML = "";
+
+  for (const player of players) {
+    const link = linked.find((l) => l.playerId === player.id);
+    const tr = document.createElement("tr");
+
+    const tdCheck = document.createElement("td");
+    const checkInput = document.createElement("input");
+    checkInput.type = "checkbox";
+    checkInput.checked = !!link;
+    checkInput.dataset.playerId = player.id;
+    tdCheck.appendChild(checkInput);
+
+    const tdName = document.createElement("td");
+    tdName.textContent = player.name;
+
+    const tdScore = document.createElement("td");
+    const scoreInput = document.createElement("input");
+    scoreInput.type = "number";
+    scoreInput.min = "0";
+    scoreInput.value = link && link.totalScore !== null ? link.totalScore : "";
+    scoreInput.dataset.playerId = player.id;
+    tdScore.appendChild(scoreInput);
+
+    tr.append(tdCheck, tdName, tdScore);
+    tbody.appendChild(tr);
+  }
+
+  document.getElementById("round-player-table").style.display = players.length ? "table" : "none";
+  document.getElementById("round-player-save-btn").style.display = players.length ? "inline" : "none";
+}
+
+function initRoundPlayerScreen() {
+  document.getElementById("round-player-round-id").addEventListener("change", (e) => {
+    const roundId = Number(e.target.value);
+    if (!roundId) {
+      document.getElementById("round-player-table").style.display = "none";
+      document.getElementById("round-player-save-btn").style.display = "none";
+      return;
+    }
+    loadRoundPlayerEditor(roundId);
+  });
+
+  document.getElementById("round-player-save-btn").addEventListener("click", () => {
+    const roundId = Number(document.getElementById("round-player-round-id").value);
+    if (!roundId) return;
+    const rows = document.querySelectorAll("#round-player-tbody tr");
+    const players = [];
+    rows.forEach((tr) => {
+      const checkInput = tr.querySelector('input[type="checkbox"]');
+      if (!checkInput.checked) return;
+      const scoreInput = tr.querySelector('input[type="number"]');
+      const playerId = Number(checkInput.dataset.playerId);
+      const totalScore = scoreInput.value === "" ? null : Number(scoreInput.value);
+      players.push({ playerId, totalScore });
+    });
+    setRoundPlayers(roundId, players);
+    alert("동반자를 저장했습니다.");
+  });
+
+  refreshRoundPlayerOptions();
+}
+
 initCourseScreen();
 initRoundScreen();
 initScoreScreen();
+initPlayerScreen();
+initRoundPlayerScreen();
 </script>
 </body>
 </html>
