@@ -126,6 +126,7 @@
 
 <section id="round-list-section">
   <h2>라운드 목록 (F-05)</h2>
+  <button type="button" id="csv-export-btn">전체 라운드 CSV 내보내기 (F-07)</button>
   <table id="round-list-table">
     <thead>
       <tr><th>일자</th><th>골프장</th><th>코스조합</th><th>총타수</th><th>총퍼팅</th><th>비용</th></tr>
@@ -1100,11 +1101,24 @@ function showRoundDetail(roundId) {
   document.getElementById("round-detail").style.display = "block";
 }
 
+// ---------- 화면: CSV 내보내기 (F-07) ----------
+
+function initCsvExportScreen() {
+  document.getElementById("csv-export-btn").addEventListener("click", () => {
+    if (getAllRounds().length === 0) {
+      alert("내보낼 라운드가 없습니다.");
+      return;
+    }
+    downloadRoundsCsv();
+  });
+}
+
 initCourseScreen();
 initRoundScreen();
 initScoreScreen();
 initPlayerScreen();
 initRoundPlayerScreen();
+initCsvExportScreen();
 renderRoundList();
 </script>
 </body>
