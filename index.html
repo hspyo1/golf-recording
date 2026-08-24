@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>골프 라운딩 기록</title>
+</head>
+<body>
+<h1>골프 라운딩 기록</h1>
+<p>화면은 다음 단계에서 만듭니다. 지금은 데이터 저장 로직만 들어있습니다.</p>
+
+<script>
+// ---------- storage 모듈: localStorage 접근은 이 블록에만 작성한다 ----------
+
+const STORAGE_KEY = "golfRecordingData";
+
+function emptyData() {
+  return {
+    nextId: {
+      courses: 1,
+      courseHoles: 1,
+      players: 1,
+      rounds: 1,
+      holeScores: 1,
+      roundPlayers: 1,
+    },
+    courses: [],
+    courseHoles: [],
+    players: [],
+    rounds: [],
+    holeScores: [],
+    roundPlayers: [],
+  };
+}
+
+function loadData() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return emptyData();
+  return JSON.parse(raw);
+}
+
+function saveData(data) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function nextId(data, table) {
+  const id = data.nextId[table];
+  data.nextId[table] = id + 1;
+  return id;
+}
+
+// ---------- courses ----------
+
+function addCourse(name, region, memo) {
+  const data = loadData();
+  const course = { id: nextId(data, "courses"), name, region: region || null, memo: memo || null };
+  data.courses.push(course);
+  saveData(data);
+  return course.id;
+}
+
+function updateCourse(courseId, name, region, memo) {
+  const data = loadData();
+  const course = data.courses.find((c) => c.id === courseId);
+  course.name = name;
+  course.region = region || null;
+  course.memo = memo || null;
+  saveData(data);
+}
+
+function deleteCourse(courseId) {
+  const data = loadData();
+  data.courses = data.courses.filter((c) => c.id !== courseId);
+  data.courseHoles = data.courseHoles.filter((h) => h.courseId !== courseId);
+  saveData(data);
+}
+
+function getCourse(courseId) {
+  const data = loadData();
+  return data.courses.find((c) => c.id === courseId) || null;
+}
+
+function getAllCourses() {
+  const data = loadData();
+  return [...data.courses].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+// ---------- courseHoles ----------
+
+// holes: [{nineName, holeNo, par, handicap}, ...]
+function replaceCourseHoles(courseId, holes) {
+  const data = loadData();
+  data.courseHoles = data.courseHoles.filter((h) => h.courseId !== courseId);
+  for (const h of holes) {
+    data.courseHoles.push({
+      id: nextId(data, "courseHoles"),
+      courseId,
+      nineName: h.nineName,
+      holeNo: h.holeNo,
+      par: h.par ?? 4,
+      handicap: h.handicap ?? null,
+    });
+  }
+  saveData(data);
+}
+
+function getCourseHoles(courseId) {
+  const data = loadData();
+  return data.courseHoles
+    .filter((h) => h.courseId === courseId)
+    .sort((a, b) => a.nineName.localeCompare(b.nineName) || a.holeNo - b.holeNo);
+}
+
+// ---------- players ----------
+
+function addPlayer(name, displayName, relation, memo) {
+  const data = loadData();
+  const player = {
+    id: nextId(data, "players"),
+    name,
+    displayName: displayName || null,
+    relation: relation || null,
+    memo: memo || null,
+  };
+  data.players.push(player);
+  saveData(data);
+  return player.id;
+}
+
+function updatePlayer(playerId, name, displayName, relation, memo) {
+  const data = loadData();
+  const player = data.players.find((p) => p.id === playerId);
+  player.name = name;
+  player.displayName = displayName || null;
+  player.relation = relation || null;
+  player.memo = memo || null;
+  saveData(data);
+}
+
+function deletePlayer(playerId) {
+  const data = loadData();
+  data.players = data.players.filter((p) => p.id !== playerId);
+  data.roundPlayers = data.roundPlayers.filter((rp) => rp.playerId !== playerId);
+  saveData(data);
+}
+
+function getAllPlayers() {
+  const data = loadData();
+  return [...data.players].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+// ---------- rounds ----------
+
+function addRound(round) {
+  const data = loadData();
+  const r = {
+    id: nextId(data, "rounds"),
+    playedOn: round.playedOn,
+    courseId: round.courseId,
+    nineCombo: round.nineCombo || null,
+    teeTime: round.teeTime || null,
+    weather: round.weather || null,
+    roundType: round.roundType || null,
+    cost: round.cost ?? null,
+    memo: round.memo || null,
+  };
+  data.rounds.push(r);
+  saveData(data);
+  return r.id;
+}
+
+function updateRound(roundId, round) {
+  const data = loadData();
+  const r = data.rounds.find((x) => x.id === roundId);
+  r.playedOn = round.playedOn;
+  r.courseId = round.courseId;
+  r.nineCombo = round.nineCombo || null;
+  r.teeTime = round.teeTime || null;
+  r.weather = round.weather || null;
+  r.roundType = round.roundType || null;
+  r.cost = round.cost ?? null;
+  r.memo = round.memo || null;
+  saveData(data);
+}
+
+function deleteRound(roundId) {
+  const data = loadData();
+  data.rounds = data.rounds.filter((r) => r.id !== roundId);
+  data.holeScores = data.holeScores.filter((hs) => hs.roundId !== roundId);
+  data.roundPlayers = data.roundPlayers.filter((rp) => rp.roundId !== roundId);
+  saveData(data);
+}
+
+function getRound(roundId) {
+  const data = loadData();
+  const r = data.rounds.find((x) => x.id === roundId);
+  if (!r) return null;
+  const course = data.courses.find((c) => c.id === r.courseId);
+  return { ...r, courseName: course ? course.name : null };
+}
+
+// 총타수·총퍼팅은 holeScores에서 매번 계산한다 (저장하지 않음)
+function getAllRounds() {
+  const data = loadData();
+  return data.rounds
+    .map((r) => {
+      const course = data.courses.find((c) => c.id === r.courseId);
+      const scores = data.holeScores.filter((hs) => hs.roundId === r.id);
+      const totalStrokes = scores.reduce((sum, s) => sum + s.strokes, 0);
+      const totalPutts = scores.reduce((sum, s) => sum + s.putts, 0);
+      return { ...r, courseName: course ? course.name : null, totalStrokes, totalPutts };
+    })
+    .sort((a, b) => (b.playedOn.localeCompare(a.playedOn)) || (b.id - a.id));
+}
+
+// ---------- holeScores ----------
+
+// scores: [{courseHoleId, strokes, putts, fairwayHit, gir, penalty, note}, ...]
+// 파3 홀은 fairwayHit을 반드시 null로 전달한다.
+function saveHoleScores(roundId, scores) {
+  const data = loadData();
+  data.holeScores = data.holeScores.filter((hs) => hs.roundId !== roundId);
+  for (const s of scores) {
+    data.holeScores.push({
+      id: nextId(data, "holeScores"),
+      roundId,
+      courseHoleId: s.courseHoleId,
+      strokes: s.strokes,
+      putts: s.putts,
+      fairwayHit: s.fairwayHit ?? null,
+      gir: s.gir ?? false,
+      penalty: s.penalty ?? 0,
+      note: s.note || null,
+    });
+  }
+  saveData(data);
+}
+
+function getHoleScores(roundId) {
+  const data = loadData();
+  return data.holeScores
+    .filter((hs) => hs.roundId === roundId)
+    .map((hs) => {
+      const hole = data.courseHoles.find((h) => h.id === hs.courseHoleId);
+      return { ...hs, nineName: hole?.nineName, holeNo: hole?.holeNo, par: hole?.par };
+    })
+    .sort((a, b) => (a.nineName || "").localeCompare(b.nineName || "") || (a.holeNo || 0) - (b.holeNo || 0));
+}
+
+// ---------- roundPlayers ----------
+
+// players: [{playerId, totalScore}, ...]
+function setRoundPlayers(roundId, players) {
+  const data = loadData();
+  data.roundPlayers = data.roundPlayers.filter((rp) => rp.roundId !== roundId);
+  for (const p of players) {
+    data.roundPlayers.push({
+      id: nextId(data, "roundPlayers"),
+      roundId,
+      playerId: p.playerId,
+      totalScore: p.totalScore ?? null,
+    });
+  }
+  saveData(data);
+}
+
+function getRoundPlayers(roundId) {
+  const data = loadData();
+  return data.roundPlayers
+    .filter((rp) => rp.roundId === roundId)
+    .map((rp) => {
+      const player = data.players.find((p) => p.id === rp.playerId);
+      return { ...rp, name: player?.name, displayName: player?.displayName };
+    });
+}
+
+// ---------- 내보내기 (F-07) ----------
+
+function csvEscape(value) {
+  const s = value === null || value === undefined ? "" : String(value);
+  if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+  return s;
+}
+
+function exportRoundsToCsv() {
+  const rounds = getAllRounds();
+  const header = ["일자", "골프장", "코스조합", "날씨", "라운드유형", "비용", "총타수", "총퍼팅", "메모"];
+  const rows = rounds.map((r) => [
+    r.playedOn,
+    r.courseName,
+    r.nineCombo,
+    r.weather,
+    r.roundType,
+    r.cost,
+    r.totalStrokes,
+    r.totalPutts,
+    r.memo,
+  ]);
+  const csv = [header, ...rows].map((row) => row.map(csvEscape).join(",")).join("\n");
+  return "﻿" + csv; // 엑셀 한글 깨짐 방지용 BOM
+}
+
+function downloadRoundsCsv() {
+  const csv = exportRoundsToCsv();
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "golf_rounds.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
