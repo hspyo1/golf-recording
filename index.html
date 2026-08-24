@@ -4,9 +4,51 @@
 <meta charset="UTF-8">
 <title>골프 라운딩 기록</title>
 </head>
+<style>
+  body { font-family: sans-serif; max-width: 720px; margin: 20px auto; padding: 0 12px; }
+  section { margin-bottom: 32px; }
+  table { border-collapse: collapse; width: 100%; margin-top: 8px; }
+  th, td { border: 1px solid #ccc; padding: 4px 6px; text-align: left; font-size: 14px; }
+  input[type="text"], input[type="number"] { width: 90px; box-sizing: border-box; }
+  #course-form input[type="text"] { width: 180px; }
+  .row-actions button { margin-right: 4px; }
+  .hole-row input[type="text"] { width: 70px; }
+  .hole-row input[type="number"] { width: 60px; }
+</style>
+</head>
 <body>
 <h1>골프 라운딩 기록</h1>
-<p>화면은 다음 단계에서 만듭니다. 지금은 데이터 저장 로직만 들어있습니다.</p>
+
+<section id="course-section">
+  <h2>골프장 관리 (F-01)</h2>
+  <form id="course-form">
+    <input type="hidden" id="course-id">
+    <input type="text" id="course-name" placeholder="골프장명 (필수)" required>
+    <input type="text" id="course-region" placeholder="지역">
+    <input type="text" id="course-memo" placeholder="메모">
+    <button type="submit">저장</button>
+    <button type="button" id="course-form-cancel" style="display:none">취소</button>
+  </form>
+
+  <table id="course-table">
+    <thead>
+      <tr><th>골프장명</th><th>지역</th><th>메모</th><th>홀 수</th><th></th></tr>
+    </thead>
+    <tbody id="course-tbody"></tbody>
+  </table>
+</section>
+
+<section id="hole-section" style="display:none">
+  <h3 id="hole-section-title">홀 정보</h3>
+  <table id="hole-table">
+    <thead>
+      <tr><th>코스구분</th><th>홀번호</th><th>파</th><th></th></tr>
+    </thead>
+    <tbody id="hole-tbody"></tbody>
+  </table>
+  <button type="button" id="hole-add-row">행 추가</button>
+  <button type="button" id="hole-save-btn">홀 정보 저장</button>
+</section>
 
 <script>
 // ---------- storage 모듈: localStorage 접근은 이 블록에만 작성한다 ----------
@@ -309,6 +351,179 @@ function downloadRoundsCsv() {
   a.click();
   URL.revokeObjectURL(url);
 }
+
+// ---------- 화면: 골프장 관리 (F-01) ----------
+
+let currentHoles = []; // 현재 편집 중인 홀 목록 (저장 전까지 메모리에만 존재)
+
+function defaultHoles() {
+  const holes = [];
+  for (const nineName of ["OUT", "IN"]) {
+    for (let holeNo = 1; holeNo <= 9; holeNo++) {
+      holes.push({ nineName, holeNo, par: 4, handicap: null });
+    }
+  }
+  return holes;
+}
+
+function renderCourseList() {
+  const tbody = document.getElementById("course-tbody");
+  tbody.innerHTML = "";
+  for (const course of getAllCourses()) {
+    const holeCount = getCourseHoles(course.id).length;
+    const tr = document.createElement("tr");
+
+    const tdName = document.createElement("td");
+    tdName.textContent = course.name;
+    const tdRegion = document.createElement("td");
+    tdRegion.textContent = course.region || "";
+    const tdMemo = document.createElement("td");
+    tdMemo.textContent = course.memo || "";
+    const tdHoleCount = document.createElement("td");
+    tdHoleCount.textContent = holeCount + "개";
+
+    const tdActions = document.createElement("td");
+    tdActions.className = "row-actions";
+    const editBtn = document.createElement("button");
+    editBtn.type = "button";
+    editBtn.textContent = "수정";
+    editBtn.addEventListener("click", () => startEditCourse(course.id));
+    const deleteBtn = document.createElement("button");
+    deleteBtn.type = "button";
+    deleteBtn.textContent = "삭제";
+    deleteBtn.addEventListener("click", () => onDeleteCourse(course.id, course.name));
+    tdActions.append(editBtn, deleteBtn);
+
+    tr.append(tdName, tdRegion, tdMemo, tdHoleCount, tdActions);
+    tbody.appendChild(tr);
+  }
+}
+
+function startEditCourse(courseId) {
+  const course = getCourse(courseId);
+  if (!course) return;
+  document.getElementById("course-id").value = course.id;
+  document.getElementById("course-name").value = course.name;
+  document.getElementById("course-region").value = course.region || "";
+  document.getElementById("course-memo").value = course.memo || "";
+  document.getElementById("course-form-cancel").style.display = "inline";
+
+  const holes = getCourseHoles(courseId);
+  currentHoles = holes.length > 0 ? holes.map((h) => ({ ...h })) : defaultHoles();
+  showHoleSection(course.name);
+}
+
+function resetCourseForm() {
+  document.getElementById("course-id").value = "";
+  document.getElementById("course-name").value = "";
+  document.getElementById("course-region").value = "";
+  document.getElementById("course-memo").value = "";
+  document.getElementById("course-form-cancel").style.display = "none";
+  document.getElementById("hole-section").style.display = "none";
+  currentHoles = [];
+}
+
+function onDeleteCourse(courseId, courseName) {
+  if (!confirm(`"${courseName}"을(를) 삭제할까요? 저장된 홀 정보도 함께 삭제됩니다.`)) return;
+  deleteCourse(courseId);
+  resetCourseForm();
+  renderCourseList();
+}
+
+function showHoleSection(courseName) {
+  document.getElementById("hole-section-title").textContent = `홀 정보 — ${courseName}`;
+  document.getElementById("hole-section").style.display = "block";
+  renderHoleTable();
+}
+
+function renderHoleTable() {
+  const tbody = document.getElementById("hole-tbody");
+  tbody.innerHTML = "";
+  currentHoles.forEach((hole, index) => {
+    const tr = document.createElement("tr");
+    tr.className = "hole-row";
+
+    const tdNine = document.createElement("td");
+    const nineInput = document.createElement("input");
+    nineInput.type = "text";
+    nineInput.value = hole.nineName;
+    nineInput.addEventListener("input", () => { hole.nineName = nineInput.value; });
+    tdNine.appendChild(nineInput);
+
+    const tdHoleNo = document.createElement("td");
+    const holeNoInput = document.createElement("input");
+    holeNoInput.type = "number";
+    holeNoInput.min = "1";
+    holeNoInput.value = hole.holeNo;
+    holeNoInput.addEventListener("input", () => { hole.holeNo = Number(holeNoInput.value); });
+    tdHoleNo.appendChild(holeNoInput);
+
+    const tdPar = document.createElement("td");
+    const parInput = document.createElement("input");
+    parInput.type = "number";
+    parInput.min = "3";
+    parInput.max = "5";
+    parInput.value = hole.par;
+    parInput.addEventListener("input", () => { hole.par = Number(parInput.value); });
+    tdPar.appendChild(parInput);
+
+    const tdActions = document.createElement("td");
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.textContent = "삭제";
+    removeBtn.addEventListener("click", () => {
+      currentHoles.splice(index, 1);
+      renderHoleTable();
+    });
+    tdActions.appendChild(removeBtn);
+
+    tr.append(tdNine, tdHoleNo, tdPar, tdActions);
+    tbody.appendChild(tr);
+  });
+}
+
+function initCourseScreen() {
+  document.getElementById("course-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const name = document.getElementById("course-name").value.trim();
+    if (!name) return;
+    const region = document.getElementById("course-region").value.trim();
+    const memo = document.getElementById("course-memo").value.trim();
+    const idValue = document.getElementById("course-id").value;
+
+    let courseId;
+    if (idValue) {
+      courseId = Number(idValue);
+      updateCourse(courseId, name, region, memo);
+    } else {
+      courseId = addCourse(name, region, memo);
+      currentHoles = defaultHoles();
+    }
+    document.getElementById("course-id").value = courseId;
+    document.getElementById("course-form-cancel").style.display = "inline";
+    renderCourseList();
+    showHoleSection(name);
+  });
+
+  document.getElementById("course-form-cancel").addEventListener("click", resetCourseForm);
+
+  document.getElementById("hole-add-row").addEventListener("click", () => {
+    currentHoles.push({ nineName: "", holeNo: currentHoles.length + 1, par: 4, handicap: null });
+    renderHoleTable();
+  });
+
+  document.getElementById("hole-save-btn").addEventListener("click", () => {
+    const courseId = Number(document.getElementById("course-id").value);
+    if (!courseId) return;
+    replaceCourseHoles(courseId, currentHoles);
+    alert("홀 정보를 저장했습니다.");
+    renderCourseList();
+  });
+
+  renderCourseList();
+}
+
+initCourseScreen();
 </script>
 </body>
 </html>
