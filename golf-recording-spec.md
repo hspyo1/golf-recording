@@ -8,6 +8,7 @@
 ## 0. 스택 변경 이력
 
 - **2026-08-24**: Streamlit + SQLite → 정적 HTML + localStorage로 전환. 이유: 폰에서 설치 없이 열리고 데이터가 기기 밖으로 나가지 않음. 배포는 GitHub Pages.
+- **2026-08-24**: F-09(GitHub Pages 배포) 완료 — `https://hspyo1.github.io/golf-recording/`. F-12(오프라인 캐시, 서비스워커) 구현 완료.
 
 ---
 

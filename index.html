@@ -1051,6 +1051,13 @@ initRoundScreen();
 initScoreScreen();
 initCsvExportScreen();
 renderRoundList();
+
+// 오프라인 캐시 (F-12). file://로 직접 열었을 때는 등록이 실패하므로 조용히 무시한다.
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(() => {});
+  });
+}
 </script>
 </body>
 </html>
