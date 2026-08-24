@@ -21,18 +21,25 @@
 
 <section id="course-section">
   <h2>골프장 관리 (F-01)</h2>
+  <h3>자주 가는 골프장</h3>
+  <table id="seed-course-table">
+    <thead>
+      <tr><th>골프장명</th><th>코스구성</th><th>지역</th><th>홀 수</th><th></th></tr>
+    </thead>
+    <tbody id="seed-course-tbody"></tbody>
+  </table>
+
   <form id="course-form">
     <input type="hidden" id="course-id">
-    <input type="text" id="course-name" placeholder="골프장명 (필수)" required>
+    <input type="text" id="course-name" placeholder="골프장명 (필수, 예: 라비에벨 올드코스)" required>
     <input type="text" id="course-region" placeholder="지역">
-    <input type="text" id="course-memo" placeholder="메모">
     <button type="submit">저장</button>
     <button type="button" id="course-form-cancel" style="display:none">취소</button>
   </form>
 
   <table id="course-table">
     <thead>
-      <tr><th>골프장명</th><th>지역</th><th>메모</th><th>홀 수</th><th></th></tr>
+      <tr><th>골프장명</th><th>지역</th><th>홀 수</th><th></th></tr>
     </thead>
     <tbody id="course-tbody"></tbody>
   </table>
@@ -56,7 +63,8 @@
     <input type="hidden" id="round-id">
     <div><label>일자 <input type="date" id="round-played-on" required></label></div>
     <div><label>골프장 <select id="round-course-id" required></select></label></div>
-    <div><label>코스조합 <input type="text" id="round-nine-combo" placeholder="예: OUT-IN"></label></div>
+    <div><label>전반 코스 <select id="round-front-nine" required></select></label></div>
+    <div><label>후반 코스 <select id="round-back-nine" required></select></label></div>
     <div><label>티타임 <input type="time" id="round-tee-time"></label></div>
     <div><label>날씨 <input type="text" id="round-weather" placeholder="맑음/흐림/비/바람"></label></div>
     <div><label>라운드 유형 <input type="text" id="round-type" placeholder="친선/접대/대회"></label></div>
@@ -65,63 +73,6 @@
     <button type="submit" id="round-form-submit">라운드 저장</button>
     <button type="button" id="round-form-cancel" style="display:none">취소</button>
   </form>
-</section>
-
-<section id="score-section">
-  <h2>홀별 스코어 입력 (F-03)</h2>
-  <div>
-    <label>라운드 선택
-      <select id="score-round-id">
-        <option value="">-- 라운드를 선택하세요 --</option>
-      </select>
-    </label>
-  </div>
-  <table id="score-table" style="display:none">
-    <thead>
-      <tr><th>코스</th><th>홀</th><th>파</th><th>타수</th><th>퍼팅</th><th>페어웨이 안착</th><th>GIR</th><th>벌타</th></tr>
-    </thead>
-    <tbody id="score-tbody"></tbody>
-  </table>
-  <p id="score-total" style="display:none"></p>
-  <button type="button" id="score-save-btn" style="display:none">스코어 저장</button>
-</section>
-
-<section id="player-section">
-  <h2>동반자 명부 (F-04)</h2>
-  <form id="player-form">
-    <input type="hidden" id="player-id">
-    <input type="text" id="player-name" placeholder="이름 (필수)" required>
-    <input type="text" id="player-display-name" placeholder="공유용 별칭 (예: 김○○)">
-    <input type="text" id="player-relation" placeholder="관계 (친구/거래처/가족 등)">
-    <input type="text" id="player-memo" placeholder="메모">
-    <button type="submit">저장</button>
-    <button type="button" id="player-form-cancel" style="display:none">취소</button>
-  </form>
-
-  <table id="player-table">
-    <thead>
-      <tr><th>이름</th><th>별칭</th><th>관계</th><th>메모</th><th></th></tr>
-    </thead>
-    <tbody id="player-tbody"></tbody>
-  </table>
-</section>
-
-<section id="round-player-section">
-  <h2>라운드 동반자 연결 (F-04)</h2>
-  <div>
-    <label>라운드 선택
-      <select id="round-player-round-id">
-        <option value="">-- 라운드를 선택하세요 --</option>
-      </select>
-    </label>
-  </div>
-  <table id="round-player-table" style="display:none">
-    <thead>
-      <tr><th>참여</th><th>이름</th><th>총타수</th></tr>
-    </thead>
-    <tbody id="round-player-tbody"></tbody>
-  </table>
-  <button type="button" id="round-player-save-btn" style="display:none">동반자 저장</button>
 </section>
 
 <section id="round-list-section">
@@ -139,14 +90,33 @@
     <p id="round-detail-summary"></p>
     <table id="round-detail-holes">
       <thead>
-        <tr><th>코스</th><th>홀</th><th>파</th><th>타수</th><th>퍼팅</th><th>페어웨이 안착</th><th>GIR</th><th>벌타</th></tr>
+        <tr><th>코스</th><th>홀</th><th>파</th><th>타수</th><th>퍼팅</th><th>페어웨이 안착</th><th>GIR</th></tr>
       </thead>
       <tbody id="round-detail-holes-tbody"></tbody>
     </table>
-    <p id="round-detail-players"></p>
     <button type="button" id="round-detail-edit-btn">라운드 수정</button>
     <button type="button" id="round-detail-delete-btn">라운드 삭제</button>
   </div>
+</section>
+
+<section id="score-section">
+  <h2>홀별 스코어 입력 (F-03)</h2>
+  <div>
+    <label>라운드 선택
+      <select id="score-round-id">
+        <option value="">-- 라운드를 선택하세요 --</option>
+      </select>
+    </label>
+  </div>
+  <p id="score-round-info"></p>
+  <table id="score-table" style="display:none">
+    <thead>
+      <tr><th>코스</th><th>홀</th><th>파</th><th>파 대비</th><th>퍼팅</th><th>페어웨이 안착</th><th>GIR</th></tr>
+    </thead>
+    <tbody id="score-tbody"></tbody>
+  </table>
+  <p id="score-total" style="display:none"></p>
+  <button type="button" id="score-save-btn" style="display:none">스코어 저장</button>
 </section>
 
 <script>
@@ -159,17 +129,16 @@ function emptyData() {
     nextId: {
       courses: 1,
       courseHoles: 1,
-      players: 1,
       rounds: 1,
       holeScores: 1,
-      roundPlayers: 1,
     },
     courses: [],
     courseHoles: [],
-    players: [],
     rounds: [],
     holeScores: [],
-    roundPlayers: [],
+    seedCoursesLoaded: false,
+    migratedBenyujiHueToNew: false,
+    cleanedOutOfComboHoleScores: false,
   };
 }
 
@@ -191,20 +160,23 @@ function nextId(data, table) {
 
 // ---------- courses ----------
 
-function addCourse(name, region, memo) {
+function addCourse(name, region) {
   const data = loadData();
-  const course = { id: nextId(data, "courses"), name, region: region || null, memo: memo || null };
+  const course = {
+    id: nextId(data, "courses"),
+    name,
+    region: region || null,
+  };
   data.courses.push(course);
   saveData(data);
   return course.id;
 }
 
-function updateCourse(courseId, name, region, memo) {
+function updateCourse(courseId, name, region) {
   const data = loadData();
   const course = data.courses.find((c) => c.id === courseId);
   course.name = name;
   course.region = region || null;
-  course.memo = memo || null;
   saveData(data);
 }
 
@@ -244,49 +216,10 @@ function replaceCourseHoles(courseId, holes) {
   saveData(data);
 }
 
+// 등록된 순서(전반 → 후반 등 사용자가 입력한 순서)를 그대로 유지한다. 알파벳순 정렬 금지.
 function getCourseHoles(courseId) {
   const data = loadData();
-  return data.courseHoles
-    .filter((h) => h.courseId === courseId)
-    .sort((a, b) => a.nineName.localeCompare(b.nineName) || a.holeNo - b.holeNo);
-}
-
-// ---------- players ----------
-
-function addPlayer(name, displayName, relation, memo) {
-  const data = loadData();
-  const player = {
-    id: nextId(data, "players"),
-    name,
-    displayName: displayName || null,
-    relation: relation || null,
-    memo: memo || null,
-  };
-  data.players.push(player);
-  saveData(data);
-  return player.id;
-}
-
-function updatePlayer(playerId, name, displayName, relation, memo) {
-  const data = loadData();
-  const player = data.players.find((p) => p.id === playerId);
-  player.name = name;
-  player.displayName = displayName || null;
-  player.relation = relation || null;
-  player.memo = memo || null;
-  saveData(data);
-}
-
-function deletePlayer(playerId) {
-  const data = loadData();
-  data.players = data.players.filter((p) => p.id !== playerId);
-  data.roundPlayers = data.roundPlayers.filter((rp) => rp.playerId !== playerId);
-  saveData(data);
-}
-
-function getAllPlayers() {
-  const data = loadData();
-  return [...data.players].sort((a, b) => a.name.localeCompare(b.name));
+  return data.courseHoles.filter((h) => h.courseId === courseId);
 }
 
 // ---------- rounds ----------
@@ -327,7 +260,6 @@ function deleteRound(roundId) {
   const data = loadData();
   data.rounds = data.rounds.filter((r) => r.id !== roundId);
   data.holeScores = data.holeScores.filter((hs) => hs.roundId !== roundId);
-  data.roundPlayers = data.roundPlayers.filter((rp) => rp.roundId !== roundId);
   saveData(data);
 }
 
@@ -355,7 +287,7 @@ function getAllRounds() {
 
 // ---------- holeScores ----------
 
-// scores: [{courseHoleId, strokes, putts, fairwayHit, gir, penalty, note}, ...]
+// scores: [{courseHoleId, strokes, putts, fairwayHit, gir, note}, ...]
 // 파3 홀은 fairwayHit을 반드시 null로 전달한다.
 function saveHoleScores(roundId, scores) {
   const data = loadData();
@@ -369,49 +301,23 @@ function saveHoleScores(roundId, scores) {
       putts: s.putts,
       fairwayHit: s.fairwayHit ?? null,
       gir: s.gir ?? false,
-      penalty: s.penalty ?? 0,
       note: s.note || null,
     });
   }
   saveData(data);
 }
 
+// 홀 순서는 course_holes에 등록된 순서(알파벳순 아님)를 그대로 따른다.
 function getHoleScores(roundId) {
   const data = loadData();
+  const holeOrder = new Map(data.courseHoles.map((h, i) => [h.id, i]));
   return data.holeScores
     .filter((hs) => hs.roundId === roundId)
     .map((hs) => {
       const hole = data.courseHoles.find((h) => h.id === hs.courseHoleId);
       return { ...hs, nineName: hole?.nineName, holeNo: hole?.holeNo, par: hole?.par };
     })
-    .sort((a, b) => (a.nineName || "").localeCompare(b.nineName || "") || (a.holeNo || 0) - (b.holeNo || 0));
-}
-
-// ---------- roundPlayers ----------
-
-// players: [{playerId, totalScore}, ...]
-function setRoundPlayers(roundId, players) {
-  const data = loadData();
-  data.roundPlayers = data.roundPlayers.filter((rp) => rp.roundId !== roundId);
-  for (const p of players) {
-    data.roundPlayers.push({
-      id: nextId(data, "roundPlayers"),
-      roundId,
-      playerId: p.playerId,
-      totalScore: p.totalScore ?? null,
-    });
-  }
-  saveData(data);
-}
-
-function getRoundPlayers(roundId) {
-  const data = loadData();
-  return data.roundPlayers
-    .filter((rp) => rp.roundId === roundId)
-    .map((rp) => {
-      const player = data.players.find((p) => p.id === rp.playerId);
-      return { ...rp, name: player?.name, displayName: player?.displayName };
-    });
+    .sort((a, b) => (holeOrder.get(a.courseHoleId) ?? 0) - (holeOrder.get(b.courseHoleId) ?? 0));
 }
 
 // ---------- 내보내기 (F-07) ----------
@@ -453,7 +359,98 @@ function downloadRoundsCsv() {
 
 // ---------- 화면: 골프장 관리 (F-01) ----------
 
+// data/seed_courses.csv 를 내장한 자주 가는 골프장 목록.
+// 골프장명·지역·코스구분(나인 이름)만 가지고 있으며, 파(par)는 시드에 담지 않고 앱의 홀 정보 화면에서 직접 기록한다.
+const HOLES_PER_NINE = 9;
+const SEED_COURSES = [
+  { name: "라비에벨 올드코스", region: "강원 춘천", nineNames: ["OUT", "IN"] },
+  { name: "라비에벨 듄스코스", region: "강원 춘천", nineNames: ["OUT", "IN"] },
+  { name: "베뉴지", region: "경기 가평", nineNames: ["G", "Hill", "New"] },
+  { name: "더크로스비", region: "경기 이천", nineNames: ["아리아", "빌리", "샬롯"] },
+  { name: "베르힐CC 영종", region: "인천 영종", nineNames: ["베르힐", "스카이", "오션", "레이크"] },
+];
+
 let currentHoles = []; // 현재 편집 중인 홀 목록 (저장 전까지 메모리에만 존재)
+let activeHoleCourseId = null; // 현재 홀 정보 편집 화면이 가리키는 골프장 id (course-form의 id 필드와 독립적으로 관리)
+
+// 시드에서 불러온 코스구분마다 9홀을 만들고, 파는 기본값(4)으로 채운다. 실제 파는 홀 정보 화면에서 입력한다.
+function seedCourseToHoles(seedCourse) {
+  const holes = [];
+  for (const nineName of seedCourse.nineNames) {
+    for (let holeNo = 1; holeNo <= HOLES_PER_NINE; holeNo++) {
+      holes.push({ nineName, holeNo, par: 4, handicap: null });
+    }
+  }
+  return holes;
+}
+
+// 앱 최초 실행 시 자주 가는 골프장 5곳을 골프장 목록에 자동으로 등록해, 라운드 등록에서 바로 고를 수 있게 한다.
+// 새 골프장 추가는 한 번만 실행되며(seedCoursesLoaded), 이미 같은 이름의 골프장이 있으면 새로 만들지 않는다.
+// 홀 정보가 비어있는 경우(예: 등록만 하고 저장 전이던 골프장)를 시드로 채우는 것은 매번 확인한다 — 이미 홀이 있으면 손대지 않는다.
+function ensureSeedCoursesRegistered() {
+  const data = loadData();
+  const existingByName = new Map(data.courses.map((c) => [c.name, c]));
+
+  if (!data.seedCoursesLoaded) {
+    for (const seedCourse of SEED_COURSES) {
+      if (existingByName.has(seedCourse.name)) continue;
+      const courseId = addCourse(seedCourse.name, seedCourse.region);
+      replaceCourseHoles(courseId, seedCourseToHoles(seedCourse));
+      existingByName.set(seedCourse.name, getCourse(courseId));
+    }
+  }
+
+  for (const seedCourse of SEED_COURSES) {
+    const existing = existingByName.get(seedCourse.name);
+    if (existing && getCourseHoles(existing.id).length === 0) {
+      replaceCourseHoles(existing.id, seedCourseToHoles(seedCourse));
+    }
+  }
+
+  const updated = loadData();
+  updated.seedCoursesLoaded = true;
+  saveData(updated);
+}
+
+// 베뉴지의 코스명이 "Hue"에서 "New"로 바뀌어, 이미 저장된 홀 정보와 라운드 기록의 코스구분 표기를 한 번만 맞춰준다.
+function migrateBenyujiHueToNew() {
+  const data = loadData();
+  if (data.migratedBenyujiHueToNew) return;
+  const benyuji = data.courses.find((c) => c.name === "베뉴지");
+  if (benyuji) {
+    for (const hole of data.courseHoles) {
+      if (hole.courseId === benyuji.id && hole.nineName === "Hue") {
+        hole.nineName = "New";
+      }
+    }
+    for (const round of data.rounds) {
+      if (round.courseId === benyuji.id && round.nineCombo) {
+        round.nineCombo = round.nineCombo.replace(/Hue/g, "New");
+      }
+    }
+  }
+  data.migratedBenyujiHueToNew = true;
+  saveData(data);
+}
+
+// 홀별 스코어 입력 화면이 라운드에서 실제 고른 전반/후반 코스(nineCombo)가 아니라 골프장의 모든 코스를 불러오던 버그로 인해,
+// 안 친 코스의 홀 스코어까지 기본값으로 저장된 경우가 있었다. nineCombo에 없는 코스구분의 저장된 스코어를 한 번만 정리한다.
+function cleanupOutOfComboHoleScores() {
+  const data = loadData();
+  if (data.cleanedOutOfComboHoleScores) return;
+  for (const round of data.rounds) {
+    if (!round.nineCombo) continue;
+    const comboNines = round.nineCombo.split("-").filter(Boolean);
+    if (comboNines.length === 0) continue;
+    data.holeScores = data.holeScores.filter((hs) => {
+      if (hs.roundId !== round.id) return true;
+      const hole = data.courseHoles.find((h) => h.id === hs.courseHoleId);
+      return hole ? comboNines.includes(hole.nineName) : true;
+    });
+  }
+  data.cleanedOutOfComboHoleScores = true;
+  saveData(data);
+}
 
 function defaultHoles() {
   const holes = [];
@@ -476,8 +473,6 @@ function renderCourseList() {
     tdName.textContent = course.name;
     const tdRegion = document.createElement("td");
     tdRegion.textContent = course.region || "";
-    const tdMemo = document.createElement("td");
-    tdMemo.textContent = course.memo || "";
     const tdHoleCount = document.createElement("td");
     tdHoleCount.textContent = holeCount + "개";
 
@@ -493,7 +488,7 @@ function renderCourseList() {
     deleteBtn.addEventListener("click", () => onDeleteCourse(course.id, course.name));
     tdActions.append(editBtn, deleteBtn);
 
-    tr.append(tdName, tdRegion, tdMemo, tdHoleCount, tdActions);
+    tr.append(tdName, tdRegion, tdHoleCount, tdActions);
     tbody.appendChild(tr);
   }
   refreshCourseOptions();
@@ -505,22 +500,21 @@ function startEditCourse(courseId) {
   document.getElementById("course-id").value = course.id;
   document.getElementById("course-name").value = course.name;
   document.getElementById("course-region").value = course.region || "";
-  document.getElementById("course-memo").value = course.memo || "";
   document.getElementById("course-form-cancel").style.display = "inline";
 
   const holes = getCourseHoles(courseId);
   currentHoles = holes.length > 0 ? holes.map((h) => ({ ...h })) : defaultHoles();
-  showHoleSection(course.name);
+  showHoleSection(course.id, course.name);
 }
 
 function resetCourseForm() {
   document.getElementById("course-id").value = "";
   document.getElementById("course-name").value = "";
   document.getElementById("course-region").value = "";
-  document.getElementById("course-memo").value = "";
   document.getElementById("course-form-cancel").style.display = "none";
   document.getElementById("hole-section").style.display = "none";
   currentHoles = [];
+  activeHoleCourseId = null;
 }
 
 function onDeleteCourse(courseId, courseName) {
@@ -530,7 +524,8 @@ function onDeleteCourse(courseId, courseName) {
   renderCourseList();
 }
 
-function showHoleSection(courseName) {
+function showHoleSection(courseId, courseName) {
+  activeHoleCourseId = courseId;
   document.getElementById("hole-section-title").textContent = `홀 정보 — ${courseName}`;
   document.getElementById("hole-section").style.display = "block";
   renderHoleTable();
@@ -582,27 +577,85 @@ function renderHoleTable() {
   });
 }
 
+// 시드 골프장 하나의 홀 구성을 보여주는 읽기 전용 미리보기 표 (등록 없이 확인만 하는 용도).
+function buildSeedHolePreviewTable(seedCourse) {
+  const table = document.createElement("table");
+  const thead = document.createElement("thead");
+  thead.innerHTML = "<tr><th>코스구분</th><th>홀번호</th><th>파</th></tr>";
+  const tbody = document.createElement("tbody");
+  for (const hole of seedCourseToHoles(seedCourse)) {
+    const tr = document.createElement("tr");
+    const tdNine = document.createElement("td");
+    tdNine.textContent = hole.nineName;
+    const tdHoleNo = document.createElement("td");
+    tdHoleNo.textContent = hole.holeNo;
+    const tdPar = document.createElement("td");
+    tdPar.textContent = hole.par;
+    tr.append(tdNine, tdHoleNo, tdPar);
+    tbody.appendChild(tr);
+  }
+  table.append(thead, tbody);
+  return table;
+}
+
+function renderSeedCourseTable() {
+  const tbody = document.getElementById("seed-course-tbody");
+  tbody.innerHTML = "";
+  for (const seedCourse of SEED_COURSES) {
+    const tr = document.createElement("tr");
+
+    const tdName = document.createElement("td");
+    tdName.textContent = seedCourse.name;
+    const tdNines = document.createElement("td");
+    tdNines.textContent = seedCourse.nineNames.join(" / ");
+    const tdRegion = document.createElement("td");
+    tdRegion.textContent = seedCourse.region || "";
+    const tdHoleCount = document.createElement("td");
+    tdHoleCount.textContent = (seedCourse.nineNames.length * HOLES_PER_NINE) + "홀";
+
+    const tdDetail = document.createElement("td");
+    const details = document.createElement("details");
+    const summary = document.createElement("summary");
+    summary.textContent = "홀 정보 보기";
+    details.appendChild(summary);
+    details.appendChild(buildSeedHolePreviewTable(seedCourse));
+    tdDetail.appendChild(details);
+
+    tr.append(tdName, tdNines, tdRegion, tdHoleCount, tdDetail);
+    tbody.appendChild(tr);
+  }
+}
+
 function initCourseScreen() {
+  renderSeedCourseTable();
+
   document.getElementById("course-form").addEventListener("submit", (e) => {
     e.preventDefault();
     const name = document.getElementById("course-name").value.trim();
     if (!name) return;
     const region = document.getElementById("course-region").value.trim();
-    const memo = document.getElementById("course-memo").value.trim();
     const idValue = document.getElementById("course-id").value;
 
     let courseId;
     if (idValue) {
       courseId = Number(idValue);
-      updateCourse(courseId, name, region, memo);
+      updateCourse(courseId, name, region);
+      document.getElementById("course-id").value = courseId;
+      document.getElementById("course-form-cancel").style.display = "inline";
     } else {
-      courseId = addCourse(name, region, memo);
-      currentHoles = defaultHoles();
+      courseId = addCourse(name, region);
+      // 골프장명이 자주 가는 골프장 목록에 있는 이름과 일치하면 그 코스 구성을 그대로 사용한다.
+      const matchedSeedCourse = SEED_COURSES.find((c) => c.name === name);
+      currentHoles = matchedSeedCourse ? seedCourseToHoles(matchedSeedCourse) : defaultHoles();
+      // 새 골프장을 저장한 뒤에는 폼을 비워, 이어서 다른 골프장을 바로 등록할 수 있게 한다.
+      // (그렇지 않으면 id가 남아있어 다음 저장이 방금 등록한 골프장을 덮어써버린다.)
+      document.getElementById("course-id").value = "";
+      document.getElementById("course-name").value = "";
+      document.getElementById("course-region").value = "";
+      document.getElementById("course-form-cancel").style.display = "none";
     }
-    document.getElementById("course-id").value = courseId;
-    document.getElementById("course-form-cancel").style.display = "inline";
     renderCourseList();
-    showHoleSection(name);
+    showHoleSection(courseId, name);
   });
 
   document.getElementById("course-form-cancel").addEventListener("click", resetCourseForm);
@@ -613,9 +666,8 @@ function initCourseScreen() {
   });
 
   document.getElementById("hole-save-btn").addEventListener("click", () => {
-    const courseId = Number(document.getElementById("course-id").value);
-    if (!courseId) return;
-    replaceCourseHoles(courseId, currentHoles);
+    if (!activeHoleCourseId) return;
+    replaceCourseHoles(activeHoleCourseId, currentHoles);
     alert("홀 정보를 저장했습니다.");
     renderCourseList();
   });
@@ -638,12 +690,48 @@ function refreshCourseOptions() {
   if (prevValue) select.value = prevValue;
 }
 
+// 골프장에 등록된 코스(전반/후반 등) 이름을 등록 순서 그대로 중복 없이 반환한다.
+function getCourseNineNames(courseId) {
+  const names = [];
+  for (const hole of getCourseHoles(courseId)) {
+    if (!names.includes(hole.nineName)) names.push(hole.nineName);
+  }
+  return names;
+}
+
+function refreshRoundNineOptions(courseId, selectedFront, selectedBack) {
+  const frontSelect = document.getElementById("round-front-nine");
+  const backSelect = document.getElementById("round-back-nine");
+  const prevFront = selectedFront !== undefined ? selectedFront : frontSelect.value;
+  const prevBack = selectedBack !== undefined ? selectedBack : backSelect.value;
+  const nineNames = courseId ? getCourseNineNames(courseId) : [];
+  frontSelect.innerHTML = "";
+  backSelect.innerHTML = "";
+  for (const nineName of nineNames) {
+    const frontOption = document.createElement("option");
+    frontOption.value = nineName;
+    frontOption.textContent = nineName;
+    frontSelect.appendChild(frontOption);
+    const backOption = document.createElement("option");
+    backOption.value = nineName;
+    backOption.textContent = nineName;
+    backSelect.appendChild(backOption);
+  }
+  if (nineNames.includes(prevFront)) frontSelect.value = prevFront;
+  if (nineNames.includes(prevBack)) {
+    backSelect.value = prevBack;
+  } else if (nineNames.length > 1) {
+    backSelect.value = nineNames[1];
+  }
+}
+
 function resetRoundForm() {
   document.getElementById("round-id").value = "";
   document.getElementById("round-form").reset();
   document.getElementById("round-form-title").textContent = "라운드 신규 등록 (F-02)";
   document.getElementById("round-form-submit").textContent = "라운드 저장";
   document.getElementById("round-form-cancel").style.display = "none";
+  refreshRoundNineOptions(Number(document.getElementById("round-course-id").value));
 }
 
 function startEditRound(roundId) {
@@ -652,7 +740,8 @@ function startEditRound(roundId) {
   document.getElementById("round-id").value = round.id;
   document.getElementById("round-played-on").value = round.playedOn;
   document.getElementById("round-course-id").value = round.courseId;
-  document.getElementById("round-nine-combo").value = round.nineCombo || "";
+  const [comboFront, comboBack] = (round.nineCombo || "").split("-");
+  refreshRoundNineOptions(round.courseId, comboFront, comboBack);
   document.getElementById("round-tee-time").value = round.teeTime || "";
   document.getElementById("round-weather").value = round.weather || "";
   document.getElementById("round-type").value = round.roundType || "";
@@ -665,11 +754,10 @@ function startEditRound(roundId) {
 }
 
 function onDeleteRound(roundId) {
-  if (!confirm("이 라운드를 삭제할까요? 홀별 스코어와 동반자 기록도 함께 삭제됩니다.")) return;
+  if (!confirm("이 라운드를 삭제할까요? 홀별 스코어도 함께 삭제됩니다.")) return;
   deleteRound(roundId);
   document.getElementById("round-detail").style.display = "none";
   refreshRoundOptions();
-  refreshRoundPlayerOptions();
   renderRoundList();
 }
 
@@ -682,10 +770,12 @@ function initRoundScreen() {
       return;
     }
     const costValue = document.getElementById("round-cost").value;
+    const frontNine = document.getElementById("round-front-nine").value;
+    const backNine = document.getElementById("round-back-nine").value;
     const roundData = {
       playedOn: document.getElementById("round-played-on").value,
       courseId,
-      nineCombo: document.getElementById("round-nine-combo").value.trim(),
+      nineCombo: [frontNine, backNine].filter(Boolean).join("-"),
       teeTime: document.getElementById("round-tee-time").value,
       weather: document.getElementById("round-weather").value.trim(),
       roundType: document.getElementById("round-type").value.trim(),
@@ -702,13 +792,17 @@ function initRoundScreen() {
     }
     resetRoundForm();
     refreshRoundOptions();
-    refreshRoundPlayerOptions();
     renderRoundList();
   });
 
   document.getElementById("round-form-cancel").addEventListener("click", resetRoundForm);
 
+  document.getElementById("round-course-id").addEventListener("change", (e) => {
+    refreshRoundNineOptions(Number(e.target.value));
+  });
+
   refreshCourseOptions();
+  refreshRoundNineOptions(Number(document.getElementById("round-course-id").value));
 }
 
 // ---------- 화면: 홀별 스코어 입력 (F-03) ----------
@@ -717,6 +811,19 @@ let currentScores = []; // 현재 편집 중인 홀별 스코어 (저장 전까�
 
 function roundLabel(round) {
   return `${round.playedOn} ${round.courseName}${round.nineCombo ? " (" + round.nineCombo + ")" : ""}`;
+}
+
+// 라운드 등록 시 입력한 정보(일자/골프장/코스조합/티타임/날씨/유형/비용/메모)를 한 줄로 요약한다.
+function formatRoundInfoLine(round) {
+  const parts = [
+    `${round.playedOn} · ${round.courseName}${round.nineCombo ? " (" + round.nineCombo + ")" : ""}`,
+    round.teeTime,
+    round.weather,
+    round.roundType,
+    round.cost != null ? `${round.cost.toLocaleString("ko-KR")}원` : null,
+    round.memo,
+  ];
+  return parts.filter(Boolean).join(" · ");
 }
 
 function refreshRoundOptions() {
@@ -752,12 +859,18 @@ function renderScoreTable() {
     tdPar.textContent = s.par;
 
     const tdStrokes = document.createElement("td");
-    const strokesInput = document.createElement("input");
-    strokesInput.type = "number";
-    strokesInput.min = "1";
-    strokesInput.value = s.strokes;
-    strokesInput.addEventListener("input", () => { s.strokes = Number(strokesInput.value); updateScoreTotal(); });
-    tdStrokes.appendChild(strokesInput);
+    const relativeInput = document.createElement("input");
+    relativeInput.type = "number";
+    relativeInput.value = s.strokes - s.par;
+    const strokesLabel = document.createElement("span");
+    strokesLabel.textContent = ` (${s.strokes}타)`;
+    relativeInput.addEventListener("input", () => {
+      const relative = Number(relativeInput.value) || 0;
+      s.strokes = s.par + relative;
+      strokesLabel.textContent = ` (${s.strokes}타)`;
+      updateScoreTotal();
+    });
+    tdStrokes.append(relativeInput, strokesLabel);
 
     const tdPutts = document.createElement("td");
     const puttsInput = document.createElement("input");
@@ -786,15 +899,7 @@ function renderScoreTable() {
     girInput.addEventListener("change", () => { s.gir = girInput.checked; });
     tdGir.appendChild(girInput);
 
-    const tdPenalty = document.createElement("td");
-    const penaltyInput = document.createElement("input");
-    penaltyInput.type = "number";
-    penaltyInput.min = "0";
-    penaltyInput.value = s.penalty;
-    penaltyInput.addEventListener("input", () => { s.penalty = Number(penaltyInput.value); });
-    tdPenalty.appendChild(penaltyInput);
-
-    tr.append(tdNine, tdHoleNo, tdPar, tdStrokes, tdPutts, tdFairway, tdGir, tdPenalty);
+    tr.append(tdNine, tdHoleNo, tdPar, tdStrokes, tdPutts, tdFairway, tdGir);
     tbody.appendChild(tr);
   });
   updateScoreTotal();
@@ -803,7 +908,10 @@ function renderScoreTable() {
 function loadScoreEditor(roundId) {
   const round = getRound(roundId);
   if (!round) return;
-  const holes = getCourseHoles(round.courseId);
+  const allHoles = getCourseHoles(round.courseId);
+  // 골프장에 코스가 3개 이상이면(예: G/Hill/New) 라운드에서 실제 고른 전반/후반 코스의 홀만 입력 대상으로 삼는다.
+  const comboNines = (round.nineCombo || "").split("-").filter(Boolean);
+  const holes = comboNines.length > 0 ? allHoles.filter((h) => comboNines.includes(h.nineName)) : allHoles;
   const existing = getHoleScores(roundId);
 
   currentScores = holes.map((hole) => {
@@ -817,10 +925,10 @@ function loadScoreEditor(roundId) {
       putts: found ? found.putts : 2,
       fairwayHit: found ? found.fairwayHit : (hole.par === 3 ? null : false),
       gir: found ? found.gir : false,
-      penalty: found ? found.penalty : 0,
     };
   });
 
+  document.getElementById("score-round-info").textContent = formatRoundInfoLine(round);
   document.getElementById("score-table").style.display = "table";
   document.getElementById("score-total").style.display = "block";
   document.getElementById("score-save-btn").style.display = "inline";
@@ -831,6 +939,7 @@ function initScoreScreen() {
   document.getElementById("score-round-id").addEventListener("change", (e) => {
     const roundId = Number(e.target.value);
     if (!roundId) {
+      document.getElementById("score-round-info").textContent = "";
       document.getElementById("score-table").style.display = "none";
       document.getElementById("score-total").style.display = "none";
       document.getElementById("score-save-btn").style.display = "none";
@@ -850,179 +959,6 @@ function initScoreScreen() {
   });
 
   refreshRoundOptions();
-}
-
-// ---------- 화면: 동반자 명부 (F-04) ----------
-
-function renderPlayerList() {
-  const tbody = document.getElementById("player-tbody");
-  tbody.innerHTML = "";
-  for (const player of getAllPlayers()) {
-    const tr = document.createElement("tr");
-
-    const tdName = document.createElement("td");
-    tdName.textContent = player.name;
-    const tdDisplayName = document.createElement("td");
-    tdDisplayName.textContent = player.displayName || "";
-    const tdRelation = document.createElement("td");
-    tdRelation.textContent = player.relation || "";
-    const tdMemo = document.createElement("td");
-    tdMemo.textContent = player.memo || "";
-
-    const tdActions = document.createElement("td");
-    tdActions.className = "row-actions";
-    const editBtn = document.createElement("button");
-    editBtn.type = "button";
-    editBtn.textContent = "수정";
-    editBtn.addEventListener("click", () => startEditPlayer(player.id));
-    const deleteBtn = document.createElement("button");
-    deleteBtn.type = "button";
-    deleteBtn.textContent = "삭제";
-    deleteBtn.addEventListener("click", () => onDeletePlayer(player.id, player.name));
-    tdActions.append(editBtn, deleteBtn);
-
-    tr.append(tdName, tdDisplayName, tdRelation, tdMemo, tdActions);
-    tbody.appendChild(tr);
-  }
-  refreshRoundPlayerCheckboxState();
-}
-
-function startEditPlayer(playerId) {
-  const player = getAllPlayers().find((p) => p.id === playerId);
-  if (!player) return;
-  document.getElementById("player-id").value = player.id;
-  document.getElementById("player-name").value = player.name;
-  document.getElementById("player-display-name").value = player.displayName || "";
-  document.getElementById("player-relation").value = player.relation || "";
-  document.getElementById("player-memo").value = player.memo || "";
-  document.getElementById("player-form-cancel").style.display = "inline";
-}
-
-function resetPlayerForm() {
-  document.getElementById("player-id").value = "";
-  document.getElementById("player-name").value = "";
-  document.getElementById("player-display-name").value = "";
-  document.getElementById("player-relation").value = "";
-  document.getElementById("player-memo").value = "";
-  document.getElementById("player-form-cancel").style.display = "none";
-}
-
-function onDeletePlayer(playerId, name) {
-  if (!confirm(`"${name}"을(를) 명부에서 삭제할까요? 기존 라운드에 연결된 기록도 함께 삭제됩니다.`)) return;
-  deletePlayer(playerId);
-  renderPlayerList();
-}
-
-function initPlayerScreen() {
-  document.getElementById("player-form").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const name = document.getElementById("player-name").value.trim();
-    if (!name) return;
-    const displayName = document.getElementById("player-display-name").value.trim();
-    const relation = document.getElementById("player-relation").value.trim();
-    const memo = document.getElementById("player-memo").value.trim();
-    const idValue = document.getElementById("player-id").value;
-
-    if (idValue) {
-      updatePlayer(Number(idValue), name, displayName, relation, memo);
-    } else {
-      addPlayer(name, displayName, relation, memo);
-    }
-    resetPlayerForm();
-    renderPlayerList();
-  });
-
-  document.getElementById("player-form-cancel").addEventListener("click", resetPlayerForm);
-
-  renderPlayerList();
-}
-
-// ---------- 화면: 라운드 동반자 연결 (F-04) ----------
-
-function refreshRoundPlayerOptions() {
-  const select = document.getElementById("round-player-round-id");
-  const prevValue = select.value;
-  select.innerHTML = '<option value="">-- 라운드를 선택하세요 --</option>';
-  for (const round of getAllRounds()) {
-    const option = document.createElement("option");
-    option.value = round.id;
-    option.textContent = roundLabel(round);
-    select.appendChild(option);
-  }
-  if (prevValue) select.value = prevValue;
-}
-
-function refreshRoundPlayerCheckboxState() {
-  const roundId = Number(document.getElementById("round-player-round-id").value);
-  if (!roundId) return;
-  loadRoundPlayerEditor(roundId);
-}
-
-function loadRoundPlayerEditor(roundId) {
-  const players = getAllPlayers();
-  const linked = getRoundPlayers(roundId);
-  const tbody = document.getElementById("round-player-tbody");
-  tbody.innerHTML = "";
-
-  for (const player of players) {
-    const link = linked.find((l) => l.playerId === player.id);
-    const tr = document.createElement("tr");
-
-    const tdCheck = document.createElement("td");
-    const checkInput = document.createElement("input");
-    checkInput.type = "checkbox";
-    checkInput.checked = !!link;
-    checkInput.dataset.playerId = player.id;
-    tdCheck.appendChild(checkInput);
-
-    const tdName = document.createElement("td");
-    tdName.textContent = player.name;
-
-    const tdScore = document.createElement("td");
-    const scoreInput = document.createElement("input");
-    scoreInput.type = "number";
-    scoreInput.min = "0";
-    scoreInput.value = link && link.totalScore !== null ? link.totalScore : "";
-    scoreInput.dataset.playerId = player.id;
-    tdScore.appendChild(scoreInput);
-
-    tr.append(tdCheck, tdName, tdScore);
-    tbody.appendChild(tr);
-  }
-
-  document.getElementById("round-player-table").style.display = players.length ? "table" : "none";
-  document.getElementById("round-player-save-btn").style.display = players.length ? "inline" : "none";
-}
-
-function initRoundPlayerScreen() {
-  document.getElementById("round-player-round-id").addEventListener("change", (e) => {
-    const roundId = Number(e.target.value);
-    if (!roundId) {
-      document.getElementById("round-player-table").style.display = "none";
-      document.getElementById("round-player-save-btn").style.display = "none";
-      return;
-    }
-    loadRoundPlayerEditor(roundId);
-  });
-
-  document.getElementById("round-player-save-btn").addEventListener("click", () => {
-    const roundId = Number(document.getElementById("round-player-round-id").value);
-    if (!roundId) return;
-    const rows = document.querySelectorAll("#round-player-tbody tr");
-    const players = [];
-    rows.forEach((tr) => {
-      const checkInput = tr.querySelector('input[type="checkbox"]');
-      if (!checkInput.checked) return;
-      const scoreInput = tr.querySelector('input[type="number"]');
-      const playerId = Number(checkInput.dataset.playerId);
-      const totalScore = scoreInput.value === "" ? null : Number(scoreInput.value);
-      players.push({ playerId, totalScore });
-    });
-    setRoundPlayers(roundId, players);
-    alert("동반자를 저장했습니다.");
-  });
-
-  refreshRoundPlayerOptions();
 }
 
 // ---------- 화면: 라운드 목록 조회 (F-05) ----------
@@ -1080,7 +1016,6 @@ function showRoundDetail(roundId) {
       s.putts,
       s.par === 3 ? "해당없음" : (s.fairwayHit ? "O" : "X"),
       s.gir ? "O" : "X",
-      s.penalty,
     ];
     for (const value of cells) {
       const td = document.createElement("td");
@@ -1089,11 +1024,6 @@ function showRoundDetail(roundId) {
     }
     holesTbody.appendChild(tr);
   }
-
-  const players = getRoundPlayers(roundId);
-  document.getElementById("round-detail-players").textContent = players.length
-    ? "동반자: " + players.map((p) => `${p.name}(${p.totalScore ?? "-"})`).join(", ")
-    : "동반자: 없음";
 
   document.getElementById("round-detail-edit-btn").onclick = () => startEditRound(round.id);
   document.getElementById("round-detail-delete-btn").onclick = () => onDeleteRound(round.id);
@@ -1113,11 +1043,12 @@ function initCsvExportScreen() {
   });
 }
 
+ensureSeedCoursesRegistered();
+migrateBenyujiHueToNew();
+cleanupOutOfComboHoleScores();
 initCourseScreen();
 initRoundScreen();
 initScoreScreen();
-initPlayerScreen();
-initRoundPlayerScreen();
 initCsvExportScreen();
 renderRoundList();
 </script>
