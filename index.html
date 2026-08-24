@@ -6,7 +6,7 @@
 <title>골프 라운딩 기록</title>
 </head>
 <style>
-  body { font-family: sans-serif; max-width: 720px; margin: 20px auto; padding: 0 12px; }
+  body { font-family: sans-serif; max-width: 720px; margin: 20px auto; padding: 0 12px 76px; }
   section { margin-bottom: 32px; }
   table { border-collapse: collapse; width: 100%; margin-top: 8px; }
   th, td { border: 1px solid #ccc; padding: 4px 6px; text-align: left; font-size: 14px; }
@@ -34,10 +34,24 @@
   #score-card-nav button { flex: 1; padding: 12px; }
   #score-view-toggle { margin: 8px 0; }
   #score-view-toggle button { margin-right: 8px; }
+
+  /* 하단 탭바 — 화면 전환으로 한 번에 보이는 정보량을 줄여 폰 가독성을 높인다 */
+  #tab-bar {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    display: flex; border-top: 1px solid #ccc; background: #fff;
+    max-width: 720px; margin: 0 auto;
+  }
+  #tab-bar .tab-bar-btn {
+    flex: 1; padding: 14px 4px; border: none; background: none;
+    font-size: 15px; color: #666; border-radius: 0;
+  }
+  #tab-bar .tab-bar-btn.active { color: #2e7d32; font-weight: bold; }
 </style>
 </head>
 <body>
 <h1>골프 라운딩 기록</h1>
+
+<div id="tab-course" class="tab-page" style="display:none">
 
 <section id="course-section">
   <h2>골프장 관리 (F-01)</h2>
@@ -84,6 +98,10 @@
   <button type="button" id="hole-save-btn">홀 정보 저장</button>
 </section>
 
+</div>
+
+<div id="tab-round" class="tab-page" style="display:none">
+
 <section id="round-section">
   <h2 id="round-form-title">라운드 신규 등록 (F-02)</h2>
   <form id="round-form">
@@ -125,6 +143,10 @@
     <button type="button" id="round-detail-delete-btn">라운드 삭제</button>
   </div>
 </section>
+
+</div>
+
+<div id="tab-score" class="tab-page" style="display:none">
 
 <section id="score-section">
   <h2>홀별 스코어 입력 (F-03)</h2>
@@ -190,6 +212,14 @@
   <button type="button" id="score-save-btn" style="display:none">스코어 저장</button>
 </section>
 
+</div>
+
+<nav id="tab-bar">
+  <button type="button" class="tab-bar-btn" data-tab="tab-course">골프장</button>
+  <button type="button" class="tab-bar-btn active" data-tab="tab-round">라운드</button>
+  <button type="button" class="tab-bar-btn" data-tab="tab-score">스코어</button>
+</nav>
+
 <script>
 // ---------- storage 모듈: localStorage 접근은 이 블록에만 작성한다 ----------
 
@@ -218,7 +248,12 @@ function emptyData() {
 function loadData() {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return emptyData();
-  return JSON.parse(raw);
+  const data = JSON.parse(raw);
+  // emptyData()에 새 필드가 추가된 뒤에도, 그 전에 저장된 기존 데이터에는 그 필드가 없다.
+  // 여기서 누락된 필드를 채워 넣어, 이전 버전에서 저장된 데이터를 열어도 에러가 나지 않게 한다.
+  if (!data.customSeedCourses) data.customSeedCourses = [];
+  if (!data.nextId.customSeedCourses) data.nextId.customSeedCourses = 1;
+  return data;
 }
 
 function saveData(data) {
@@ -468,6 +503,8 @@ const SEED_COURSES = [
   { name: "베뉴지", region: "경기 가평", nineNames: ["G", "Hill", "New"] },
   { name: "더크로스비", region: "경기 이천", nineNames: ["아리아", "빌리", "샬롯"] },
   { name: "베르힐CC 영종", region: "인천 영종", nineNames: ["베르힐", "스카이", "오션", "레이크"] },
+  { name: "자유CC", region: "경기 여주", nineNames: ["OUT", "IN"] },
+  { name: "솔모로CC", region: "경기 여주", nineNames: ["파인", "메이플", "체리", "퍼시먼"] },
 ];
 
 let currentHoles = []; // 현재 편집 중인 홀 목록 (저장 전까지 메모리에만 존재)
@@ -1283,6 +1320,24 @@ function initCsvExportScreen() {
   });
 }
 
+// ---------- 화면: 하단 탭 전환 ----------
+
+function switchTab(tabId) {
+  document.querySelectorAll(".tab-page").forEach((el) => {
+    el.style.display = el.id === tabId ? "block" : "none";
+  });
+  document.querySelectorAll(".tab-bar-btn").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.tab === tabId);
+  });
+}
+
+function initTabBar() {
+  document.querySelectorAll(".tab-bar-btn").forEach((btn) => {
+    btn.addEventListener("click", () => switchTab(btn.dataset.tab));
+  });
+  switchTab("tab-round");
+}
+
 ensureSeedCoursesRegistered();
 migrateBenyujiHueToNew();
 cleanupOutOfComboHoleScores();
@@ -1290,6 +1345,7 @@ initCourseScreen();
 initRoundScreen();
 initScoreScreen();
 initCsvExportScreen();
+initTabBar();
 renderRoundList();
 
 // 오프라인 캐시 (F-12). file://로 직접 열었을 때는 등록이 실패하므로 조용히 무시한다.
