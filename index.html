@@ -50,6 +50,21 @@
   <button type="button" id="hole-save-btn">홀 정보 저장</button>
 </section>
 
+<section id="round-section">
+  <h2>라운드 신규 등록 (F-02)</h2>
+  <form id="round-form">
+    <div><label>일자 <input type="date" id="round-played-on" required></label></div>
+    <div><label>골프장 <select id="round-course-id" required></select></label></div>
+    <div><label>코스조합 <input type="text" id="round-nine-combo" placeholder="예: OUT-IN"></label></div>
+    <div><label>티타임 <input type="time" id="round-tee-time"></label></div>
+    <div><label>날씨 <input type="text" id="round-weather" placeholder="맑음/흐림/비/바람"></label></div>
+    <div><label>라운드 유형 <input type="text" id="round-type" placeholder="친선/접대/대회"></label></div>
+    <div><label>비용 <input type="number" id="round-cost" min="0"></label></div>
+    <div><label>메모 <input type="text" id="round-memo"></label></div>
+    <button type="submit">라운드 저장</button>
+  </form>
+</section>
+
 <script>
 // ---------- storage 모듈: localStorage 접근은 이 블록에만 작성한다 ----------
 
@@ -397,6 +412,7 @@ function renderCourseList() {
     tr.append(tdName, tdRegion, tdMemo, tdHoleCount, tdActions);
     tbody.appendChild(tr);
   }
+  refreshCourseOptions();
 }
 
 function startEditCourse(courseId) {
@@ -523,7 +539,49 @@ function initCourseScreen() {
   renderCourseList();
 }
 
+// ---------- 화면: 라운드 신규 등록 (F-02) ----------
+
+function refreshCourseOptions() {
+  const select = document.getElementById("round-course-id");
+  const prevValue = select.value;
+  select.innerHTML = "";
+  for (const course of getAllCourses()) {
+    const option = document.createElement("option");
+    option.value = course.id;
+    option.textContent = course.name;
+    select.appendChild(option);
+  }
+  if (prevValue) select.value = prevValue;
+}
+
+function initRoundScreen() {
+  document.getElementById("round-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const courseId = Number(document.getElementById("round-course-id").value);
+    if (!courseId) {
+      alert("골프장을 먼저 등록해주세요.");
+      return;
+    }
+    const costValue = document.getElementById("round-cost").value;
+    addRound({
+      playedOn: document.getElementById("round-played-on").value,
+      courseId,
+      nineCombo: document.getElementById("round-nine-combo").value.trim(),
+      teeTime: document.getElementById("round-tee-time").value,
+      weather: document.getElementById("round-weather").value.trim(),
+      roundType: document.getElementById("round-type").value.trim(),
+      cost: costValue === "" ? null : Number(costValue),
+      memo: document.getElementById("round-memo").value.trim(),
+    });
+    document.getElementById("round-form").reset();
+    alert("라운드를 저장했습니다.");
+  });
+
+  refreshCourseOptions();
+}
+
 initCourseScreen();
+initRoundScreen();
 </script>
 </body>
 </html>
