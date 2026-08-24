@@ -51,8 +51,9 @@
 </section>
 
 <section id="round-section">
-  <h2>라운드 신규 등록 (F-02)</h2>
+  <h2 id="round-form-title">라운드 신규 등록 (F-02)</h2>
   <form id="round-form">
+    <input type="hidden" id="round-id">
     <div><label>일자 <input type="date" id="round-played-on" required></label></div>
     <div><label>골프장 <select id="round-course-id" required></select></label></div>
     <div><label>코스조합 <input type="text" id="round-nine-combo" placeholder="예: OUT-IN"></label></div>
@@ -61,7 +62,8 @@
     <div><label>라운드 유형 <input type="text" id="round-type" placeholder="친선/접대/대회"></label></div>
     <div><label>비용 <input type="number" id="round-cost" min="0"></label></div>
     <div><label>메모 <input type="text" id="round-memo"></label></div>
-    <button type="submit">라운드 저장</button>
+    <button type="submit" id="round-form-submit">라운드 저장</button>
+    <button type="button" id="round-form-cancel" style="display:none">취소</button>
   </form>
 </section>
 
@@ -141,6 +143,8 @@
       <tbody id="round-detail-holes-tbody"></tbody>
     </table>
     <p id="round-detail-players"></p>
+    <button type="button" id="round-detail-edit-btn">라운드 수정</button>
+    <button type="button" id="round-detail-delete-btn">라운드 삭제</button>
   </div>
 </section>
 
@@ -633,6 +637,41 @@ function refreshCourseOptions() {
   if (prevValue) select.value = prevValue;
 }
 
+function resetRoundForm() {
+  document.getElementById("round-id").value = "";
+  document.getElementById("round-form").reset();
+  document.getElementById("round-form-title").textContent = "라운드 신규 등록 (F-02)";
+  document.getElementById("round-form-submit").textContent = "라운드 저장";
+  document.getElementById("round-form-cancel").style.display = "none";
+}
+
+function startEditRound(roundId) {
+  const round = getRound(roundId);
+  if (!round) return;
+  document.getElementById("round-id").value = round.id;
+  document.getElementById("round-played-on").value = round.playedOn;
+  document.getElementById("round-course-id").value = round.courseId;
+  document.getElementById("round-nine-combo").value = round.nineCombo || "";
+  document.getElementById("round-tee-time").value = round.teeTime || "";
+  document.getElementById("round-weather").value = round.weather || "";
+  document.getElementById("round-type").value = round.roundType || "";
+  document.getElementById("round-cost").value = round.cost ?? "";
+  document.getElementById("round-memo").value = round.memo || "";
+  document.getElementById("round-form-title").textContent = "라운드 수정 (F-06)";
+  document.getElementById("round-form-submit").textContent = "수정 저장";
+  document.getElementById("round-form-cancel").style.display = "inline";
+  document.getElementById("round-section").scrollIntoView({ behavior: "smooth" });
+}
+
+function onDeleteRound(roundId) {
+  if (!confirm("이 라운드를 삭제할까요? 홀별 스코어와 동반자 기록도 함께 삭제됩니다.")) return;
+  deleteRound(roundId);
+  document.getElementById("round-detail").style.display = "none";
+  refreshRoundOptions();
+  refreshRoundPlayerOptions();
+  renderRoundList();
+}
+
 function initRoundScreen() {
   document.getElementById("round-form").addEventListener("submit", (e) => {
     e.preventDefault();
@@ -642,7 +681,7 @@ function initRoundScreen() {
       return;
     }
     const costValue = document.getElementById("round-cost").value;
-    addRound({
+    const roundData = {
       playedOn: document.getElementById("round-played-on").value,
       courseId,
       nineCombo: document.getElementById("round-nine-combo").value.trim(),
@@ -651,13 +690,22 @@ function initRoundScreen() {
       roundType: document.getElementById("round-type").value.trim(),
       cost: costValue === "" ? null : Number(costValue),
       memo: document.getElementById("round-memo").value.trim(),
-    });
-    document.getElementById("round-form").reset();
-    alert("라운드를 저장했습니다.");
+    };
+    const idValue = document.getElementById("round-id").value;
+    if (idValue) {
+      updateRound(Number(idValue), roundData);
+      alert("라운드를 수정했습니다.");
+    } else {
+      addRound(roundData);
+      alert("라운드를 저장했습니다.");
+    }
+    resetRoundForm();
     refreshRoundOptions();
     refreshRoundPlayerOptions();
     renderRoundList();
   });
+
+  document.getElementById("round-form-cancel").addEventListener("click", resetRoundForm);
 
   refreshCourseOptions();
 }
@@ -1045,6 +1093,9 @@ function showRoundDetail(roundId) {
   document.getElementById("round-detail-players").textContent = players.length
     ? "동반자: " + players.map((p) => `${p.name}(${p.totalScore ?? "-"})`).join(", ")
     : "동반자: 없음";
+
+  document.getElementById("round-detail-edit-btn").onclick = () => startEditRound(round.id);
+  document.getElementById("round-detail-delete-btn").onclick = () => onDeleteRound(round.id);
 
   document.getElementById("round-detail").style.display = "block";
 }
