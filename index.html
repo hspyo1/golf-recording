@@ -65,6 +65,25 @@
   </form>
 </section>
 
+<section id="score-section">
+  <h2>홀별 스코어 입력 (F-03)</h2>
+  <div>
+    <label>라운드 선택
+      <select id="score-round-id">
+        <option value="">-- 라운드를 선택하세요 --</option>
+      </select>
+    </label>
+  </div>
+  <table id="score-table" style="display:none">
+    <thead>
+      <tr><th>코스</th><th>홀</th><th>파</th><th>타수</th><th>퍼팅</th><th>페어웨이 안착</th><th>GIR</th><th>벌타</th></tr>
+    </thead>
+    <tbody id="score-tbody"></tbody>
+  </table>
+  <p id="score-total" style="display:none"></p>
+  <button type="button" id="score-save-btn" style="display:none">스코어 저장</button>
+</section>
+
 <script>
 // ---------- storage 모듈: localStorage 접근은 이 블록에만 작성한다 ----------
 
@@ -575,13 +594,155 @@ function initRoundScreen() {
     });
     document.getElementById("round-form").reset();
     alert("라운드를 저장했습니다.");
+    refreshRoundOptions();
   });
 
   refreshCourseOptions();
 }
 
+// ---------- 화면: 홀별 스코어 입력 (F-03) ----------
+
+let currentScores = []; // 현재 편집 중인 홀별 스코어 (저장 전까지 메모리에만 존재)
+
+function roundLabel(round) {
+  return `${round.playedOn} ${round.courseName}${round.nineCombo ? " (" + round.nineCombo + ")" : ""}`;
+}
+
+function refreshRoundOptions() {
+  const select = document.getElementById("score-round-id");
+  const prevValue = select.value;
+  select.innerHTML = '<option value="">-- 라운드를 선택하세요 --</option>';
+  for (const round of getAllRounds()) {
+    const option = document.createElement("option");
+    option.value = round.id;
+    option.textContent = roundLabel(round);
+    select.appendChild(option);
+  }
+  if (prevValue) select.value = prevValue;
+}
+
+function updateScoreTotal() {
+  const totalStrokes = currentScores.reduce((sum, s) => sum + (Number(s.strokes) || 0), 0);
+  const totalPutts = currentScores.reduce((sum, s) => sum + (Number(s.putts) || 0), 0);
+  document.getElementById("score-total").textContent = `합계 — 타수: ${totalStrokes} / 퍼팅: ${totalPutts}`;
+}
+
+function renderScoreTable() {
+  const tbody = document.getElementById("score-tbody");
+  tbody.innerHTML = "";
+  currentScores.forEach((s) => {
+    const tr = document.createElement("tr");
+
+    const tdNine = document.createElement("td");
+    tdNine.textContent = s.nineName;
+    const tdHoleNo = document.createElement("td");
+    tdHoleNo.textContent = s.holeNo;
+    const tdPar = document.createElement("td");
+    tdPar.textContent = s.par;
+
+    const tdStrokes = document.createElement("td");
+    const strokesInput = document.createElement("input");
+    strokesInput.type = "number";
+    strokesInput.min = "1";
+    strokesInput.value = s.strokes;
+    strokesInput.addEventListener("input", () => { s.strokes = Number(strokesInput.value); updateScoreTotal(); });
+    tdStrokes.appendChild(strokesInput);
+
+    const tdPutts = document.createElement("td");
+    const puttsInput = document.createElement("input");
+    puttsInput.type = "number";
+    puttsInput.min = "0";
+    puttsInput.value = s.putts;
+    puttsInput.addEventListener("input", () => { s.putts = Number(puttsInput.value); updateScoreTotal(); });
+    tdPutts.appendChild(puttsInput);
+
+    const tdFairway = document.createElement("td");
+    if (s.par === 3) {
+      tdFairway.textContent = "해당없음";
+      s.fairwayHit = null;
+    } else {
+      const fairwayInput = document.createElement("input");
+      fairwayInput.type = "checkbox";
+      fairwayInput.checked = !!s.fairwayHit;
+      fairwayInput.addEventListener("change", () => { s.fairwayHit = fairwayInput.checked; });
+      tdFairway.appendChild(fairwayInput);
+    }
+
+    const tdGir = document.createElement("td");
+    const girInput = document.createElement("input");
+    girInput.type = "checkbox";
+    girInput.checked = !!s.gir;
+    girInput.addEventListener("change", () => { s.gir = girInput.checked; });
+    tdGir.appendChild(girInput);
+
+    const tdPenalty = document.createElement("td");
+    const penaltyInput = document.createElement("input");
+    penaltyInput.type = "number";
+    penaltyInput.min = "0";
+    penaltyInput.value = s.penalty;
+    penaltyInput.addEventListener("input", () => { s.penalty = Number(penaltyInput.value); });
+    tdPenalty.appendChild(penaltyInput);
+
+    tr.append(tdNine, tdHoleNo, tdPar, tdStrokes, tdPutts, tdFairway, tdGir, tdPenalty);
+    tbody.appendChild(tr);
+  });
+  updateScoreTotal();
+}
+
+function loadScoreEditor(roundId) {
+  const round = getRound(roundId);
+  if (!round) return;
+  const holes = getCourseHoles(round.courseId);
+  const existing = getHoleScores(roundId);
+
+  currentScores = holes.map((hole) => {
+    const found = existing.find((e) => e.courseHoleId === hole.id);
+    return {
+      courseHoleId: hole.id,
+      nineName: hole.nineName,
+      holeNo: hole.holeNo,
+      par: hole.par,
+      strokes: found ? found.strokes : hole.par,
+      putts: found ? found.putts : 2,
+      fairwayHit: found ? found.fairwayHit : (hole.par === 3 ? null : false),
+      gir: found ? found.gir : false,
+      penalty: found ? found.penalty : 0,
+    };
+  });
+
+  document.getElementById("score-table").style.display = "table";
+  document.getElementById("score-total").style.display = "block";
+  document.getElementById("score-save-btn").style.display = "inline";
+  renderScoreTable();
+}
+
+function initScoreScreen() {
+  document.getElementById("score-round-id").addEventListener("change", (e) => {
+    const roundId = Number(e.target.value);
+    if (!roundId) {
+      document.getElementById("score-table").style.display = "none";
+      document.getElementById("score-total").style.display = "none";
+      document.getElementById("score-save-btn").style.display = "none";
+      currentScores = [];
+      return;
+    }
+    loadScoreEditor(roundId);
+  });
+
+  document.getElementById("score-save-btn").addEventListener("click", () => {
+    const roundId = Number(document.getElementById("score-round-id").value);
+    if (!roundId) return;
+    saveHoleScores(roundId, currentScores);
+    alert("스코어를 저장했습니다.");
+    refreshRoundOptions();
+  });
+
+  refreshRoundOptions();
+}
+
 initCourseScreen();
 initRoundScreen();
+initScoreScreen();
 </script>
 </body>
 </html>
