@@ -44,7 +44,10 @@ golf-recording/
 ├── CLAUDE.md
 ├── golf-recording-spec.md     ← 요구사항 기준 문서 (docs/ 로 옮기지 않음)
 ├── README.md
-└── index.html                 ← 전부(HTML/CSS/JS)가 이 한 파일 안에 있다
+├── index.html                 ← 화면·로직(HTML/CSS/JS)이 이 한 파일 안에 있다
+├── sw.js                      ← 오프라인 캐시용 서비스워커 (F-12)
+├── manifest.json              ← 홈 화면 추가 시 앱 이름·아이콘·테마색 (F-09/F-10)
+└── icons/                     ← 홈 화면 아이콘 PNG (apple-touch-icon, icon-192, icon-512, favicon-32)
 ```
 
 ---

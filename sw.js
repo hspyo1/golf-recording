@@ -1,7 +1,10 @@
 // 오프라인 캐시 (F-12). index.html 하나만 캐시해서, 통신이 끊겨도 앱이 열리고
 // 입력·저장(localStorage)이 되게 한다. 버전을 올리면 새 캐시로 교체되고 예전 캐시는 지운다.
-const CACHE_NAME = "golf-recording-v1";
-const ASSETS = ["./", "./index.html"];
+const CACHE_NAME = "golf-recording-v2";
+const ASSETS = [
+  "./", "./index.html", "./manifest.json",
+  "./icons/apple-touch-icon.png", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/favicon-32.png",
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)));
