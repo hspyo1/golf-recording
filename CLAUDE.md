@@ -67,7 +67,7 @@ golf-recording/
 6. 비밀번호·접속키를 코드에 쓰지 않는다. **단, Supabase의 URL과 anon(public) key는 예외다** — Row Level Security로 보호되는 공개용 키라 클라이언트 코드에 그대로 두어도 된다. service_role key 등 비공개 키는 절대 코드에 넣지 않는다.
 
 7. **표 구조는 spec.md 3.1을 따르되 JS 배열로 구현한다.**
-   `courses`, `courseHoles`, `rounds`, `holeScores` — 각 배열의 각 항목은 spec.md의 컬럼과 동일한 필드를 가지며, 정수 `id`를 직접 채번해서 부여한다(다음 id 카운터를 데이터 객체에 함께 저장).
+   `rounds`, `holeScores` — 각 배열의 각 항목은 spec.md의 컬럼과 동일한 필드를 가지며, 정수 `id`를 직접 채번해서 부여한다(다음 id 카운터를 데이터 객체에 함께 저장). 골프장/코스명·홀별 par는 마스터 테이블 없이 `rounds`·`holeScores`에 직접 입력한 값을 저장한다(2026-08-25 F-01 폐기, spec.md 이력 참고).
 
 ---
 

@@ -12,10 +12,7 @@
   th, td { border: 1px solid #ccc; padding: 4px 6px; text-align: left; font-size: 14px; }
   input[type="text"], input[type="number"] { width: 90px; box-sizing: border-box; font-size: 16px; }
   select, button { font-size: 16px; padding: 6px 10px; }
-  #course-form input[type="text"] { width: 180px; }
   .row-actions button { margin-right: 4px; }
-  .hole-row input[type="text"] { width: 70px; }
-  .hole-row input[type="number"] { width: 60px; }
 
   /* 홀별 스코어 입력 — 모바일 카드 뷰 (F-10) */
   #score-card { border: 1px solid #ccc; border-radius: 8px; padding: 16px; margin-top: 8px; }
@@ -49,48 +46,6 @@
 <body>
 <h1>my golf scores</h1>
 
-<div id="tab-course" class="tab-page" style="display:none">
-
-<section id="course-section">
-  <h2>golf club</h2>
-  <form id="course-form">
-    <input type="hidden" id="course-id">
-    <input type="text" id="course-name" placeholder="Golf club name (required, e.g. Lavieestbelle Old Course)" required>
-    <input type="text" id="course-region" placeholder="Region">
-    <label id="course-nine-count-label">Number of courses
-      <select id="course-nine-count">
-        <option value="2" selected>2 (OUT/IN)</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-      </select>
-    </label>
-    <button type="submit" id="course-form-submit">Save</button>
-    <button type="button" id="course-form-cancel" style="display:none">Cancel</button>
-  </form>
-
-  <table id="course-table">
-    <thead>
-      <tr><th>Golf Club</th><th>Region</th><th>Courses</th><th>Holes</th><th></th></tr>
-    </thead>
-    <tbody id="course-tbody"></tbody>
-  </table>
-</section>
-
-<section id="hole-section" style="display:none">
-  <h3 id="hole-section-title">Hole Info</h3>
-  <table id="hole-table">
-    <thead>
-      <tr><th>Course</th><th>Hole</th><th>Par</th><th></th></tr>
-    </thead>
-    <tbody id="hole-tbody"></tbody>
-  </table>
-  <button type="button" id="hole-add-row">Add Row</button>
-  <button type="button" id="hole-save-btn">Save Hole Info</button>
-</section>
-
-</div>
-
 <div id="tab-round" class="tab-page" style="display:none">
 
 <section id="round-section">
@@ -98,13 +53,9 @@
   <form id="round-form">
     <input type="hidden" id="round-id">
     <div><label>Date <input type="date" id="round-played-on" required></label></div>
-    <div><label>Golf Club <select id="round-course-id" required></select></label></div>
-    <div><label>Front Nine <select id="round-front-nine" required></select></label></div>
-    <div><label>Back Nine <select id="round-back-nine" required></select></label></div>
-    <div><label>Tee Time <input type="time" id="round-tee-time"></label></div>
-    <div><label>Weather <input type="text" id="round-weather" placeholder="Sunny/Cloudy/Rain/Windy"></label></div>
-    <div><label>Round Type <input type="text" id="round-type" placeholder="Casual/Business/Tournament"></label></div>
-    <div><label>Cost <input type="number" id="round-cost" min="0"></label></div>
+    <div><label>Golf Club <input type="text" id="round-course-name" required></label></div>
+    <div><label>Front Nine <input type="text" id="round-front-nine" required></label></div>
+    <div><label>Back Nine <input type="text" id="round-back-nine" required></label></div>
     <div><label>Memo <input type="text" id="round-memo"></label></div>
     <button type="submit" id="round-form-submit">Save Round</button>
     <button type="button" id="round-form-cancel" style="display:none">Cancel</button>
@@ -115,7 +66,7 @@
   <h2>Rounds</h2>
   <table id="round-list-table">
     <thead>
-      <tr><th>Date</th><th>Golf Club</th><th>Nines</th><th>Total Strokes</th><th>Total Putts</th><th>Cost</th></tr>
+      <tr><th>Date</th><th>Golf Club</th><th>Nines</th><th>Total Strokes</th><th>Total Putts</th></tr>
     </thead>
     <tbody id="round-list-tbody"></tbody>
   </table>
@@ -125,7 +76,7 @@
     <p id="round-detail-summary"></p>
     <table id="round-detail-holes">
       <thead>
-        <tr><th>Course</th><th>Hole</th><th>Par</th><th>Strokes</th><th>Putts</th><th>Fairway Hit</th><th>GIR</th></tr>
+        <tr><th>Nine</th><th>Hole</th><th>Par</th><th>Strokes</th><th>Putts</th><th>Fairway Hit</th><th>GIR</th></tr>
       </thead>
       <tbody id="round-detail-holes-tbody"></tbody>
     </table>
@@ -157,6 +108,15 @@
   <div id="score-card" style="display:none">
     <p id="score-card-progress"></p>
     <h3 id="score-card-title"></h3>
+
+    <div class="stepper-row">
+      <span class="stepper-label">Par</span>
+      <div class="stepper-controls">
+        <button type="button" class="stepper-btn" id="score-card-par-minus">−</button>
+        <span class="stepper-value" id="score-card-par-value"></span>
+        <button type="button" class="stepper-btn" id="score-card-par-plus">+</button>
+      </div>
+    </div>
 
     <div class="stepper-row">
       <span class="stepper-label">vs Par</span>
@@ -194,7 +154,7 @@
 
   <table id="score-table" style="display:none">
     <thead>
-      <tr><th>Course</th><th>Hole</th><th>Par</th><th>vs Par</th><th>Putts</th><th>Fairway Hit</th><th>GIR</th></tr>
+      <tr><th>Nine</th><th>Hole</th><th>Par</th><th>vs Par</th><th>Putts</th><th>Fairway Hit</th><th>GIR</th></tr>
     </thead>
     <tbody id="score-tbody"></tbody>
   </table>
@@ -240,14 +200,13 @@
 
 <section id="export-section">
   <h2>Export</h2>
-  <p>Export every recorded round (date, golf club, nines, weather, cost, totals, memo) as a CSV file you can open in Excel or Google Sheets.</p>
+  <p>Export every recorded round (date, golf club, nines, totals, memo) as a CSV file you can open in Excel or Google Sheets.</p>
   <button type="button" id="csv-export-btn">Export All Rounds to CSV</button>
 </section>
 
 </div>
 
 <nav id="tab-bar">
-  <button type="button" class="tab-bar-btn" data-tab="tab-course">Clubs</button>
   <button type="button" class="tab-bar-btn active" data-tab="tab-round">Rounds</button>
   <button type="button" class="tab-bar-btn" data-tab="tab-score">Scores</button>
   <button type="button" class="tab-bar-btn" data-tab="tab-stats">Stats</button>
@@ -259,102 +218,51 @@
 
 const STORAGE_KEY = "golfRecordingData";
 
+// 골프장 마스터/홀 마스터(courses, courseHoles)를 없애고, 라운드마다 골프장명·코스명·홀별 파를
+// 직접 입력하는 구조로 바꾼 스키마. 이전 버전 데이터와 구조가 달라 호환되지 않으므로 버전이 다르면
+// 초기화한다(사용자 확인 후 결정된 동작).
+const SCHEMA_VERSION = 2;
+
 function emptyData() {
   return {
+    schemaVersion: SCHEMA_VERSION,
     nextId: {
-      courses: 1,
-      courseHoles: 1,
       rounds: 1,
       holeScores: 1,
     },
-    courses: [],
-    courseHoles: [],
     rounds: [],
     holeScores: [],
-    migratedBenyujiHueToNew: false,
-    migratedBenyujiNineOrder: false,
-    cleanedOutOfComboHoleScores: false,
   };
 }
 
 function loadData() {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return emptyData();
-  return JSON.parse(raw);
+  const data = JSON.parse(raw);
+  if (data.schemaVersion !== SCHEMA_VERSION) return emptyData();
+  return data;
 }
 
 function saveData(data) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
+// 이전 스키마(courses/courseHoles 참조 구조) 데이터가 남아있으면 앱을 열 때 한 번 지운다.
+function resetOldSchemaIfNeeded() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return;
+  try {
+    const data = JSON.parse(raw);
+    if (data.schemaVersion !== SCHEMA_VERSION) saveData(emptyData());
+  } catch (e) {
+    saveData(emptyData());
+  }
+}
+
 function nextId(data, table) {
   const id = data.nextId[table];
   data.nextId[table] = id + 1;
   return id;
-}
-
-// ---------- courses ----------
-
-function addCourse(name, region) {
-  const data = loadData();
-  const course = {
-    id: nextId(data, "courses"),
-    name,
-    region: region || null,
-  };
-  data.courses.push(course);
-  saveData(data);
-  return course.id;
-}
-
-function updateCourse(courseId, name, region) {
-  const data = loadData();
-  const course = data.courses.find((c) => c.id === courseId);
-  course.name = name;
-  course.region = region || null;
-  saveData(data);
-}
-
-function deleteCourse(courseId) {
-  const data = loadData();
-  data.courses = data.courses.filter((c) => c.id !== courseId);
-  data.courseHoles = data.courseHoles.filter((h) => h.courseId !== courseId);
-  saveData(data);
-}
-
-function getCourse(courseId) {
-  const data = loadData();
-  return data.courses.find((c) => c.id === courseId) || null;
-}
-
-function getAllCourses() {
-  const data = loadData();
-  return [...data.courses].sort((a, b) => a.name.localeCompare(b.name));
-}
-
-// ---------- courseHoles ----------
-
-// holes: [{nineName, holeNo, par, handicap}, ...]
-function replaceCourseHoles(courseId, holes) {
-  const data = loadData();
-  data.courseHoles = data.courseHoles.filter((h) => h.courseId !== courseId);
-  for (const h of holes) {
-    data.courseHoles.push({
-      id: nextId(data, "courseHoles"),
-      courseId,
-      nineName: h.nineName,
-      holeNo: h.holeNo,
-      par: h.par ?? 4,
-      handicap: h.handicap ?? null,
-    });
-  }
-  saveData(data);
-}
-
-// 등록된 순서(전반 → 후반 등 사용자가 입력한 순서)를 그대로 유지한다. 알파벳순 정렬 금지.
-function getCourseHoles(courseId) {
-  const data = loadData();
-  return data.courseHoles.filter((h) => h.courseId === courseId);
 }
 
 // ---------- rounds ----------
@@ -364,12 +272,9 @@ function addRound(round) {
   const r = {
     id: nextId(data, "rounds"),
     playedOn: round.playedOn,
-    courseId: round.courseId,
-    nineCombo: round.nineCombo || null,
-    teeTime: round.teeTime || null,
-    weather: round.weather || null,
-    roundType: round.roundType || null,
-    cost: round.cost ?? null,
+    courseName: round.courseName,
+    frontNine: round.frontNine,
+    backNine: round.backNine,
     memo: round.memo || null,
   };
   data.rounds.push(r);
@@ -381,12 +286,9 @@ function updateRound(roundId, round) {
   const data = loadData();
   const r = data.rounds.find((x) => x.id === roundId);
   r.playedOn = round.playedOn;
-  r.courseId = round.courseId;
-  r.nineCombo = round.nineCombo || null;
-  r.teeTime = round.teeTime || null;
-  r.weather = round.weather || null;
-  r.roundType = round.roundType || null;
-  r.cost = round.cost ?? null;
+  r.courseName = round.courseName;
+  r.frontNine = round.frontNine;
+  r.backNine = round.backNine;
   r.memo = round.memo || null;
   saveData(data);
 }
@@ -400,10 +302,7 @@ function deleteRound(roundId) {
 
 function getRound(roundId) {
   const data = loadData();
-  const r = data.rounds.find((x) => x.id === roundId);
-  if (!r) return null;
-  const course = data.courses.find((c) => c.id === r.courseId);
-  return { ...r, courseName: course ? course.name : null };
+  return data.rounds.find((x) => x.id === roundId) || null;
 }
 
 // 총타수·총퍼팅은 holeScores에서 매번 계산한다 (저장하지 않음)
@@ -411,18 +310,18 @@ function getAllRounds() {
   const data = loadData();
   return data.rounds
     .map((r) => {
-      const course = data.courses.find((c) => c.id === r.courseId);
       const scores = data.holeScores.filter((hs) => hs.roundId === r.id);
       const totalStrokes = scores.reduce((sum, s) => sum + s.strokes, 0);
       const totalPutts = scores.reduce((sum, s) => sum + s.putts, 0);
-      return { ...r, courseName: course ? course.name : null, totalStrokes, totalPutts };
+      return { ...r, totalStrokes, totalPutts };
     })
     .sort((a, b) => (b.playedOn.localeCompare(a.playedOn)) || (b.id - a.id));
 }
 
 // ---------- holeScores ----------
 
-// scores: [{courseHoleId, strokes, putts, fairwayHit, gir, note}, ...]
+// scores: [{nineOrder, nineName, holeNo, par, strokes, putts, fairwayHit, gir, note}, ...]
+// 홀 정보(코스명·파)를 별도 마스터에서 끌어오지 않고, 홀별 스코어 자신이 그대로 갖는다.
 // 파3 홀은 fairwayHit을 반드시 null로 전달한다.
 function saveHoleScores(roundId, scores) {
   const data = loadData();
@@ -431,7 +330,10 @@ function saveHoleScores(roundId, scores) {
     data.holeScores.push({
       id: nextId(data, "holeScores"),
       roundId,
-      courseHoleId: s.courseHoleId,
+      nineOrder: s.nineOrder,
+      nineName: s.nineName,
+      holeNo: s.holeNo,
+      par: s.par,
       strokes: s.strokes,
       putts: s.putts,
       fairwayHit: s.fairwayHit ?? null,
@@ -442,17 +344,12 @@ function saveHoleScores(roundId, scores) {
   saveData(data);
 }
 
-// 홀 순서는 course_holes에 등록된 순서(알파벳순 아님)를 그대로 따른다.
+// 전반(nineOrder 0) → 후반(nineOrder 1), 홀 번호 순으로 정렬한다.
 function getHoleScores(roundId) {
   const data = loadData();
-  const holeOrder = new Map(data.courseHoles.map((h, i) => [h.id, i]));
   return data.holeScores
     .filter((hs) => hs.roundId === roundId)
-    .map((hs) => {
-      const hole = data.courseHoles.find((h) => h.id === hs.courseHoleId);
-      return { ...hs, nineName: hole?.nineName, holeNo: hole?.holeNo, par: hole?.par };
-    })
-    .sort((a, b) => (holeOrder.get(a.courseHoleId) ?? 0) - (holeOrder.get(b.courseHoleId) ?? 0));
+    .sort((a, b) => a.nineOrder - b.nineOrder || a.holeNo - b.holeNo);
 }
 
 // ---------- 내보내기 (F-07) ----------
@@ -465,14 +362,11 @@ function csvEscape(value) {
 
 function exportRoundsToCsv() {
   const rounds = getAllRounds();
-  const header = ["Date", "Golf Club", "Nines", "Weather", "Round Type", "Cost", "Total Strokes", "Total Putts", "Memo"];
+  const header = ["Date", "Golf Club", "Nines", "Total Strokes", "Total Putts", "Memo"];
   const rows = rounds.map((r) => [
     r.playedOn,
     r.courseName,
-    r.nineCombo,
-    r.weather,
-    r.roundType,
-    r.cost,
+    `${r.frontNine}-${r.backNine}`,
     r.totalStrokes,
     r.totalPutts,
     r.memo,
@@ -492,361 +386,7 @@ function downloadRoundsCsv() {
   URL.revokeObjectURL(url);
 }
 
-// ---------- 화면: 골프장 관리 (F-01) ----------
-
-// data/seed_courses.csv 를 내장한 자주 가는 골프장 목록.
-// 골프장명·지역·코스구분(나인 이름)만 가지고 있으며, 파(par)는 시드에 담지 않고 앱의 홀 정보 화면에서 직접 기록한다.
-const HOLES_PER_NINE = 9;
-const SEED_COURSES = [
-  { name: "라비에벨 올드코스", region: "강원 춘천", nineNames: ["OUT", "IN"] },
-  { name: "라비에벨 듄스코스", region: "강원 춘천", nineNames: ["OUT", "IN"] },
-  { name: "베뉴지", region: "경기 가평", nineNames: ["G", "New", "Hill"] },
-  { name: "더크로스비", region: "경기 이천", nineNames: ["아리아", "빌리", "샬롯"] },
-  { name: "베르힐CC 영종", region: "인천 영종", nineNames: ["베르힐", "스카이", "오션", "레이크"] },
-  { name: "자유CC", region: "경기 여주", nineNames: ["OUT", "IN"] },
-  { name: "솔모로CC", region: "경기 여주", nineNames: ["파인", "메이플", "체리", "퍼시먼"] },
-];
-
-let currentHoles = []; // 현재 편집 중인 홀 목록 (저장 전까지 메모리에만 존재)
-let activeHoleCourseId = null; // 현재 홀 정보 편집 화면이 가리키는 골프장 id (course-form의 id 필드와 독립적으로 관리)
-
-// 시드에서 불러온 코스구분마다 9홀을 만들고, 파는 기본값(4)으로 채운다. 실제 파는 홀 정보 화면에서 입력한다.
-function seedCourseToHoles(seedCourse) {
-  const holes = [];
-  for (const nineName of seedCourse.nineNames) {
-    for (let holeNo = 1; holeNo <= HOLES_PER_NINE; holeNo++) {
-      holes.push({ nineName, holeNo, par: 4, handicap: null });
-    }
-  }
-  return holes;
-}
-
-// 앱을 열 때마다 SEED_COURSES에 있는 골프장을 확인해, 아직 등록 안 된 것만 골프장 목록에 새로 등록한다
-// (이미 같은 이름이 있으면 건너뛴다). 이렇게 하면 나중에 SEED_COURSES에 골프장이 추가돼도
-// 기존 사용자에게 자동으로 반영된다. 홀 정보가 비어있는 골프장(예: 등록만 하고 저장 전)은 시드로 채운다 —
-// 이미 홀이 있으면 손대지 않는다.
-function ensureSeedCoursesRegistered() {
-  const data = loadData();
-  const existingByName = new Map(data.courses.map((c) => [c.name, c]));
-
-  for (const seedCourse of SEED_COURSES) {
-    if (!existingByName.has(seedCourse.name)) {
-      const courseId = addCourse(seedCourse.name, seedCourse.region);
-      replaceCourseHoles(courseId, seedCourseToHoles(seedCourse));
-      existingByName.set(seedCourse.name, getCourse(courseId));
-    }
-  }
-
-  for (const seedCourse of SEED_COURSES) {
-    const existing = existingByName.get(seedCourse.name);
-    if (existing && getCourseHoles(existing.id).length === 0) {
-      replaceCourseHoles(existing.id, seedCourseToHoles(seedCourse));
-    }
-  }
-}
-
-// 베뉴지의 코스명이 "Hue"에서 "New"로 바뀌어, 이미 저장된 홀 정보와 라운드 기록의 코스구분 표기를 한 번만 맞춰준다.
-function migrateBenyujiHueToNew() {
-  const data = loadData();
-  if (data.migratedBenyujiHueToNew) return;
-  const benyuji = data.courses.find((c) => c.name === "베뉴지");
-  if (benyuji) {
-    for (const hole of data.courseHoles) {
-      if (hole.courseId === benyuji.id && hole.nineName === "Hue") {
-        hole.nineName = "New";
-      }
-    }
-    for (const round of data.rounds) {
-      if (round.courseId === benyuji.id && round.nineCombo) {
-        round.nineCombo = round.nineCombo.replace(/Hue/g, "New");
-      }
-    }
-  }
-  data.migratedBenyujiHueToNew = true;
-  saveData(data);
-}
-
-// 베뉴지 코스구성 표시 순서를 G/Hill/New → G/New/Hill로 맞춘다. 기존 courseHoles의 id는 그대로 두고
-// 배열 안에서의 순서만 바꿔서, 이미 입력된 홀별 스코어(courseHoleId로 연결됨)가 깨지지 않게 한다.
-function migrateBenyujiNineOrder() {
-  const data = loadData();
-  if (data.migratedBenyujiNineOrder) return;
-  const benyuji = data.courses.find((c) => c.name === "베뉴지");
-  if (benyuji) {
-    const order = { G: 0, New: 1, Hill: 2 };
-    const indices = [];
-    const holes = [];
-    data.courseHoles.forEach((hole, i) => {
-      if (hole.courseId === benyuji.id) {
-        indices.push(i);
-        holes.push(hole);
-      }
-    });
-    holes.sort((a, b) => (order[a.nineName] ?? 99) - (order[b.nineName] ?? 99) || a.holeNo - b.holeNo);
-    indices.forEach((idx, k) => {
-      data.courseHoles[idx] = holes[k];
-    });
-  }
-  data.migratedBenyujiNineOrder = true;
-  saveData(data);
-}
-
-// 홀별 스코어 입력 화면이 라운드에서 실제 고른 전반/후반 코스(nineCombo)가 아니라 골프장의 모든 코스를 불러오던 버그로 인해,
-// 안 친 코스의 홀 스코어까지 기본값으로 저장된 경우가 있었다. nineCombo에 없는 코스구분의 저장된 스코어를 한 번만 정리한다.
-function cleanupOutOfComboHoleScores() {
-  const data = loadData();
-  if (data.cleanedOutOfComboHoleScores) return;
-  for (const round of data.rounds) {
-    if (!round.nineCombo) continue;
-    const comboNines = round.nineCombo.split("-").filter(Boolean);
-    if (comboNines.length === 0) continue;
-    data.holeScores = data.holeScores.filter((hs) => {
-      if (hs.roundId !== round.id) return true;
-      const hole = data.courseHoles.find((h) => h.id === hs.courseHoleId);
-      return hole ? comboNines.includes(hole.nineName) : true;
-    });
-  }
-  data.cleanedOutOfComboHoleScores = true;
-  saveData(data);
-}
-
-// nineCount가 2면 OUT/IN으로, 3개 이상이면 "코스1"·"코스2"...로 이름을 채워둔다.
-// 실제 이름과 파는 홀 정보 화면에서 고쳐 쓴다.
-function defaultHoles(nineCount) {
-  const count = nineCount || 2;
-  const nineNames = count === 2 ? ["OUT", "IN"] : Array.from({ length: count }, (_, i) => `Course ${i + 1}`);
-  const holes = [];
-  for (const nineName of nineNames) {
-    for (let holeNo = 1; holeNo <= 9; holeNo++) {
-      holes.push({ nineName, holeNo, par: 4, handicap: null });
-    }
-  }
-  return holes;
-}
-
-function renderCourseList() {
-  const tbody = document.getElementById("course-tbody");
-  tbody.innerHTML = "";
-  for (const course of getAllCourses()) {
-    const holeCount = getCourseHoles(course.id).length;
-    const tr = document.createElement("tr");
-
-    const tdName = document.createElement("td");
-    tdName.textContent = course.name;
-    const tdRegion = document.createElement("td");
-    tdRegion.textContent = course.region || "";
-    const tdNines = document.createElement("td");
-    tdNines.textContent = getCourseNineNames(course.id).join(" / ");
-    const tdHoleCount = document.createElement("td");
-    tdHoleCount.textContent = `${holeCount} holes`;
-
-    const tdActions = document.createElement("td");
-    tdActions.className = "row-actions";
-    const editBtn = document.createElement("button");
-    editBtn.type = "button";
-    editBtn.textContent = "Edit";
-    editBtn.addEventListener("click", () => startEditCourse(course.id));
-    const deleteBtn = document.createElement("button");
-    deleteBtn.type = "button";
-    deleteBtn.textContent = "Delete";
-    deleteBtn.addEventListener("click", () => onDeleteCourse(course.id, course.name));
-    tdActions.append(editBtn, deleteBtn);
-
-    tr.append(tdName, tdRegion, tdNines, tdHoleCount, tdActions);
-    tbody.appendChild(tr);
-  }
-  refreshCourseOptions();
-}
-
-function startEditCourse(courseId) {
-  const course = getCourse(courseId);
-  if (!course) return;
-  document.getElementById("course-id").value = course.id;
-  document.getElementById("course-name").value = course.name;
-  document.getElementById("course-region").value = course.region || "";
-  document.getElementById("course-form-cancel").style.display = "inline";
-  document.getElementById("course-form-submit").textContent = "Save Changes";
-  document.getElementById("course-nine-count-label").style.display = "none";
-
-  const holes = getCourseHoles(courseId);
-  currentHoles = holes.length > 0 ? holes.map((h) => ({ ...h })) : defaultHoles();
-  showHoleSection(course.id, course.name);
-}
-
-function resetCourseForm() {
-  document.getElementById("course-id").value = "";
-  document.getElementById("course-name").value = "";
-  document.getElementById("course-region").value = "";
-  document.getElementById("course-nine-count").value = "2";
-  document.getElementById("course-nine-count-label").style.display = "inline";
-  document.getElementById("course-form-cancel").style.display = "none";
-  document.getElementById("course-form-submit").textContent = "Save";
-  document.getElementById("hole-section").style.display = "none";
-  currentHoles = [];
-  activeHoleCourseId = null;
-}
-
-function onDeleteCourse(courseId, courseName) {
-  if (!confirm(`Delete "${courseName}"? Its saved hole info will also be deleted.`)) return;
-  deleteCourse(courseId);
-  resetCourseForm();
-  renderCourseList();
-}
-
-function showHoleSection(courseId, courseName) {
-  activeHoleCourseId = courseId;
-  document.getElementById("hole-section-title").textContent = `Hole Info — ${courseName}`;
-  document.getElementById("hole-section").style.display = "block";
-  renderHoleTable();
-}
-
-function renderHoleTable() {
-  const tbody = document.getElementById("hole-tbody");
-  tbody.innerHTML = "";
-  currentHoles.forEach((hole, index) => {
-    const tr = document.createElement("tr");
-    tr.className = "hole-row";
-
-    const tdNine = document.createElement("td");
-    const nineInput = document.createElement("input");
-    nineInput.type = "text";
-    nineInput.value = hole.nineName;
-    nineInput.addEventListener("input", () => { hole.nineName = nineInput.value; });
-    tdNine.appendChild(nineInput);
-
-    const tdHoleNo = document.createElement("td");
-    const holeNoInput = document.createElement("input");
-    holeNoInput.type = "number";
-    holeNoInput.min = "1";
-    holeNoInput.value = hole.holeNo;
-    holeNoInput.addEventListener("input", () => { hole.holeNo = Number(holeNoInput.value); });
-    tdHoleNo.appendChild(holeNoInput);
-
-    const tdPar = document.createElement("td");
-    const parInput = document.createElement("input");
-    parInput.type = "number";
-    parInput.min = "3";
-    parInput.max = "5";
-    parInput.value = hole.par;
-    parInput.addEventListener("input", () => { hole.par = Number(parInput.value); });
-    tdPar.appendChild(parInput);
-
-    const tdActions = document.createElement("td");
-    const removeBtn = document.createElement("button");
-    removeBtn.type = "button";
-    removeBtn.textContent = "Delete";
-    removeBtn.addEventListener("click", () => {
-      currentHoles.splice(index, 1);
-      renderHoleTable();
-    });
-    tdActions.appendChild(removeBtn);
-
-    tr.append(tdNine, tdHoleNo, tdPar, tdActions);
-    tbody.appendChild(tr);
-  });
-}
-
-function initCourseScreen() {
-  document.getElementById("course-form").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const name = document.getElementById("course-name").value.trim();
-    if (!name) return;
-    const region = document.getElementById("course-region").value.trim();
-    const idValue = document.getElementById("course-id").value;
-
-    let courseId;
-    if (idValue) {
-      courseId = Number(idValue);
-      updateCourse(courseId, name, region);
-      document.getElementById("course-id").value = courseId;
-      document.getElementById("course-form-cancel").style.display = "inline";
-      document.getElementById("course-form-submit").textContent = "Save Changes";
-    } else {
-      courseId = addCourse(name, region);
-      // 골프장명이 SEED_COURSES에 있는 이름과 일치하면 그 코스 구성을 그대로 사용하고,
-      // 아니면 방금 고른 코스 개수만큼 9홀씩 기본 이름(코스1, 코스2...)으로 채운다.
-      const matchedSeedCourse = SEED_COURSES.find((c) => c.name === name);
-      const nineCount = Number(document.getElementById("course-nine-count").value);
-      currentHoles = matchedSeedCourse ? seedCourseToHoles(matchedSeedCourse) : defaultHoles(nineCount);
-      // 새 골프장을 저장한 뒤에는 폼을 비워, 이어서 다른 골프장을 바로 등록할 수 있게 한다.
-      // (그렇지 않으면 id가 남아있어 다음 저장이 방금 등록한 골프장을 덮어써버린다.)
-      document.getElementById("course-id").value = "";
-      document.getElementById("course-name").value = "";
-      document.getElementById("course-region").value = "";
-      document.getElementById("course-nine-count").value = "2";
-      document.getElementById("course-form-cancel").style.display = "none";
-      document.getElementById("course-form-submit").textContent = "Save";
-    }
-    renderCourseList();
-    showHoleSection(courseId, name);
-  });
-
-  document.getElementById("course-form-cancel").addEventListener("click", resetCourseForm);
-
-  document.getElementById("hole-add-row").addEventListener("click", () => {
-    currentHoles.push({ nineName: "", holeNo: currentHoles.length + 1, par: 4, handicap: null });
-    renderHoleTable();
-  });
-
-  document.getElementById("hole-save-btn").addEventListener("click", () => {
-    if (!activeHoleCourseId) return;
-    replaceCourseHoles(activeHoleCourseId, currentHoles);
-    alert("Hole info saved.");
-    renderCourseList();
-  });
-
-  renderCourseList();
-}
-
 // ---------- 화면: 라운드 신규 등록 (F-02) ----------
-
-function refreshCourseOptions() {
-  const select = document.getElementById("round-course-id");
-  const prevValue = select.value;
-  select.innerHTML = '<option value="">-- Select a golf club --</option>';
-  for (const course of getAllCourses()) {
-    const option = document.createElement("option");
-    option.value = course.id;
-    option.textContent = course.name;
-    select.appendChild(option);
-  }
-  if (prevValue) select.value = prevValue;
-}
-
-// 골프장에 등록된 코스(전반/후반 등) 이름을 등록 순서 그대로 중복 없이 반환한다.
-function getCourseNineNames(courseId) {
-  const names = [];
-  for (const hole of getCourseHoles(courseId)) {
-    if (!names.includes(hole.nineName)) names.push(hole.nineName);
-  }
-  return names;
-}
-
-function refreshRoundNineOptions(courseId, selectedFront, selectedBack) {
-  const frontSelect = document.getElementById("round-front-nine");
-  const backSelect = document.getElementById("round-back-nine");
-  const prevFront = selectedFront !== undefined ? selectedFront : frontSelect.value;
-  const prevBack = selectedBack !== undefined ? selectedBack : backSelect.value;
-  const nineNames = courseId ? getCourseNineNames(courseId) : [];
-  frontSelect.innerHTML = "";
-  backSelect.innerHTML = "";
-  for (const nineName of nineNames) {
-    const frontOption = document.createElement("option");
-    frontOption.value = nineName;
-    frontOption.textContent = nineName;
-    frontSelect.appendChild(frontOption);
-    const backOption = document.createElement("option");
-    backOption.value = nineName;
-    backOption.textContent = nineName;
-    backSelect.appendChild(backOption);
-  }
-  if (nineNames.includes(prevFront)) frontSelect.value = prevFront;
-  if (nineNames.includes(prevBack)) {
-    backSelect.value = prevBack;
-  } else if (nineNames.length > 1) {
-    backSelect.value = nineNames[1];
-  }
-}
 
 function resetRoundForm() {
   document.getElementById("round-id").value = "";
@@ -854,7 +394,6 @@ function resetRoundForm() {
   document.getElementById("round-form-title").textContent = "New Round";
   document.getElementById("round-form-submit").textContent = "Save Round";
   document.getElementById("round-form-cancel").style.display = "none";
-  refreshRoundNineOptions(Number(document.getElementById("round-course-id").value));
 }
 
 function startEditRound(roundId) {
@@ -862,13 +401,9 @@ function startEditRound(roundId) {
   if (!round) return;
   document.getElementById("round-id").value = round.id;
   document.getElementById("round-played-on").value = round.playedOn;
-  document.getElementById("round-course-id").value = round.courseId;
-  const [comboFront, comboBack] = (round.nineCombo || "").split("-");
-  refreshRoundNineOptions(round.courseId, comboFront, comboBack);
-  document.getElementById("round-tee-time").value = round.teeTime || "";
-  document.getElementById("round-weather").value = round.weather || "";
-  document.getElementById("round-type").value = round.roundType || "";
-  document.getElementById("round-cost").value = round.cost ?? "";
+  document.getElementById("round-course-name").value = round.courseName;
+  document.getElementById("round-front-nine").value = round.frontNine;
+  document.getElementById("round-back-nine").value = round.backNine;
   document.getElementById("round-memo").value = round.memo || "";
   document.getElementById("round-form-title").textContent = "Edit Round";
   document.getElementById("round-form-submit").textContent = "Save Changes";
@@ -887,22 +422,15 @@ function onDeleteRound(roundId) {
 function initRoundScreen() {
   document.getElementById("round-form").addEventListener("submit", (e) => {
     e.preventDefault();
-    const courseId = Number(document.getElementById("round-course-id").value);
-    if (!courseId) {
-      alert("Please add a golf club first.");
-      return;
-    }
-    const costValue = document.getElementById("round-cost").value;
-    const frontNine = document.getElementById("round-front-nine").value;
-    const backNine = document.getElementById("round-back-nine").value;
+    const courseName = document.getElementById("round-course-name").value.trim();
+    const frontNine = document.getElementById("round-front-nine").value.trim();
+    const backNine = document.getElementById("round-back-nine").value.trim();
+    if (!courseName || !frontNine || !backNine) return;
     const roundData = {
       playedOn: document.getElementById("round-played-on").value,
-      courseId,
-      nineCombo: [frontNine, backNine].filter(Boolean).join("-"),
-      teeTime: document.getElementById("round-tee-time").value,
-      weather: document.getElementById("round-weather").value.trim(),
-      roundType: document.getElementById("round-type").value.trim(),
-      cost: costValue === "" ? null : Number(costValue),
+      courseName,
+      frontNine,
+      backNine,
       memo: document.getElementById("round-memo").value.trim(),
     };
     const idValue = document.getElementById("round-id").value;
@@ -919,33 +447,24 @@ function initRoundScreen() {
   });
 
   document.getElementById("round-form-cancel").addEventListener("click", resetRoundForm);
-
-  document.getElementById("round-course-id").addEventListener("change", (e) => {
-    refreshRoundNineOptions(Number(e.target.value));
-  });
-
-  refreshCourseOptions();
-  refreshRoundNineOptions(Number(document.getElementById("round-course-id").value));
 }
 
 // ---------- 화면: 홀별 스코어 입력 (F-03) ----------
+
+const HOLES_PER_NINE = 9;
 
 let currentScores = []; // 현재 편집 중인 홀별 스코어 (저장 전까지 메모리에만 존재)
 let currentHoleIndex = 0; // 카드 뷰(F-10)에서 현재 보고 있는 홀의 currentScores 인덱스
 let scoreViewMode = "card"; // "card"(한 화면 = 한 홀) | "table"(전체 표, PC 보정용)
 
 function roundLabel(round) {
-  return `${round.playedOn} ${round.courseName}${round.nineCombo ? " (" + round.nineCombo + ")" : ""}`;
+  return `${round.playedOn} ${round.courseName} (${round.frontNine}-${round.backNine})`;
 }
 
-// 라운드 등록 시 입력한 정보(일자/골프장/코스조합/티타임/날씨/유형/비용/메모)를 한 줄로 요약한다.
+// 라운드 등록 시 입력한 정보(일자/골프장/코스조합/메모)를 한 줄로 요약한다.
 function formatRoundInfoLine(round) {
   const parts = [
-    `${round.playedOn} · ${round.courseName}${round.nineCombo ? " (" + round.nineCombo + ")" : ""}`,
-    round.teeTime,
-    round.weather,
-    round.roundType,
-    round.cost != null ? `₩${round.cost.toLocaleString("en-US")}` : null,
+    `${round.playedOn} · ${round.courseName} (${round.frontNine}-${round.backNine})`,
     round.memo,
   ];
   return parts.filter(Boolean).join(" · ");
@@ -985,7 +504,9 @@ function renderScoreCard() {
   const s = currentScores[currentHoleIndex];
 
   document.getElementById("score-card-progress").textContent = `${currentHoleIndex + 1} / ${total}`;
-  document.getElementById("score-card-title").textContent = `${s.nineName} Hole ${s.holeNo} · Par ${s.par}`;
+  document.getElementById("score-card-title").textContent = `${s.nineName} Hole ${s.holeNo}`;
+
+  document.getElementById("score-card-par-value").textContent = s.par;
 
   const relative = s.strokes - s.par;
   const relativeText = relative > 0 ? `+${relative}` : `${relative}`;
@@ -1030,8 +551,13 @@ function renderScoreTable() {
     tdNine.textContent = s.nineName;
     const tdHoleNo = document.createElement("td");
     tdHoleNo.textContent = s.holeNo;
+
     const tdPar = document.createElement("td");
-    tdPar.textContent = s.par;
+    const parInput = document.createElement("input");
+    parInput.type = "number";
+    parInput.min = "3";
+    parInput.max = "5";
+    parInput.value = s.par;
 
     const tdStrokes = document.createElement("td");
     const relativeInput = document.createElement("input");
@@ -1047,6 +573,39 @@ function renderScoreTable() {
     });
     tdStrokes.append(relativeInput, strokesLabel);
 
+    const tdFairway = document.createElement("td");
+    const fairwayNa = document.createElement("span");
+    fairwayNa.textContent = "N/A";
+    const fairwayInput = document.createElement("input");
+    fairwayInput.type = "checkbox";
+    fairwayInput.checked = !!s.fairwayHit;
+    fairwayInput.addEventListener("change", () => { s.fairwayHit = fairwayInput.checked; });
+    tdFairway.append(fairwayNa, fairwayInput);
+
+    function refreshFairwayCell() {
+      if (s.par === 3) {
+        s.fairwayHit = null;
+        fairwayNa.style.display = "inline";
+        fairwayInput.style.display = "none";
+      } else {
+        if (s.fairwayHit === null || s.fairwayHit === undefined) s.fairwayHit = false;
+        fairwayInput.checked = !!s.fairwayHit;
+        fairwayNa.style.display = "none";
+        fairwayInput.style.display = "inline";
+      }
+    }
+    refreshFairwayCell();
+
+    parInput.addEventListener("input", () => {
+      s.par = Number(parInput.value) || 4;
+      const relative = s.strokes - s.par;
+      relativeInput.value = relative;
+      strokesLabel.textContent = ` (${s.strokes} strokes)`;
+      refreshFairwayCell();
+      updateScoreTotal();
+    });
+    tdPar.appendChild(parInput);
+
     const tdPutts = document.createElement("td");
     const puttsInput = document.createElement("input");
     puttsInput.type = "number";
@@ -1054,18 +613,6 @@ function renderScoreTable() {
     puttsInput.value = s.putts;
     puttsInput.addEventListener("input", () => { s.putts = Number(puttsInput.value); updateScoreTotal(); });
     tdPutts.appendChild(puttsInput);
-
-    const tdFairway = document.createElement("td");
-    if (s.par === 3) {
-      tdFairway.textContent = "N/A";
-      s.fairwayHit = null;
-    } else {
-      const fairwayInput = document.createElement("input");
-      fairwayInput.type = "checkbox";
-      fairwayInput.checked = !!s.fairwayHit;
-      fairwayInput.addEventListener("change", () => { s.fairwayHit = fairwayInput.checked; });
-      tdFairway.appendChild(fairwayInput);
-    }
 
     const tdGir = document.createElement("td");
     const girInput = document.createElement("input");
@@ -1080,25 +627,31 @@ function renderScoreTable() {
   updateScoreTotal();
 }
 
+// 전/후반 각 9홀 고정. 라운드에 저장된 골프장/코스명을 그대로 홀 이름으로 쓴다.
 function loadScoreEditor(roundId) {
   const round = getRound(roundId);
   if (!round) return;
-  const allHoles = getCourseHoles(round.courseId);
-  // 골프장에 코스가 3개 이상이면(예: G/Hill/New) 라운드에서 실제 고른 전반/후반 코스의 홀만 입력 대상으로 삼는다.
-  const comboNines = (round.nineCombo || "").split("-").filter(Boolean);
-  const holes = comboNines.length > 0 ? allHoles.filter((h) => comboNines.includes(h.nineName)) : allHoles;
   const existing = getHoleScores(roundId);
 
-  currentScores = holes.map((hole) => {
-    const found = existing.find((e) => e.courseHoleId === hole.id);
+  const holesSpec = [];
+  for (let holeNo = 1; holeNo <= HOLES_PER_NINE; holeNo++) {
+    holesSpec.push({ nineOrder: 0, nineName: round.frontNine, holeNo });
+  }
+  for (let holeNo = 1; holeNo <= HOLES_PER_NINE; holeNo++) {
+    holesSpec.push({ nineOrder: 1, nineName: round.backNine, holeNo });
+  }
+
+  currentScores = holesSpec.map((spec) => {
+    const found = existing.find((e) => e.nineOrder === spec.nineOrder && e.holeNo === spec.holeNo);
+    const par = found ? found.par : 4;
     return {
-      courseHoleId: hole.id,
-      nineName: hole.nineName,
-      holeNo: hole.holeNo,
-      par: hole.par,
-      strokes: found ? found.strokes : hole.par,
+      nineOrder: spec.nineOrder,
+      nineName: spec.nineName,
+      holeNo: spec.holeNo,
+      par,
+      strokes: found ? found.strokes : par,
       putts: found ? found.putts : 2,
-      fairwayHit: found ? found.fairwayHit : (hole.par === 3 ? null : false),
+      fairwayHit: found ? found.fairwayHit : (par === 3 ? null : false),
       gir: found ? found.gir : false,
     };
   });
@@ -1130,6 +683,20 @@ function initScoreScreen() {
   document.getElementById("score-view-card-btn").addEventListener("click", () => setScoreViewMode("card"));
   document.getElementById("score-view-table-btn").addEventListener("click", () => setScoreViewMode("table"));
 
+  document.getElementById("score-card-par-minus").addEventListener("click", () => {
+    const s = currentScores[currentHoleIndex];
+    s.par = Math.max(3, s.par - 1);
+    s.fairwayHit = s.par === 3 ? null : (s.fairwayHit ?? false);
+    autoSaveCurrentScores();
+    renderScoreCard();
+  });
+  document.getElementById("score-card-par-plus").addEventListener("click", () => {
+    const s = currentScores[currentHoleIndex];
+    s.par = Math.min(5, s.par + 1);
+    s.fairwayHit = s.par === 3 ? null : (s.fairwayHit ?? false);
+    autoSaveCurrentScores();
+    renderScoreCard();
+  });
   document.getElementById("score-card-relative-minus").addEventListener("click", () => {
     const s = currentScores[currentHoleIndex];
     s.strokes = Math.max(1, s.strokes - 1);
@@ -1206,15 +773,13 @@ function renderRoundList() {
     const tdCourse = document.createElement("td");
     tdCourse.textContent = round.courseName || "";
     const tdCombo = document.createElement("td");
-    tdCombo.textContent = round.nineCombo || "";
+    tdCombo.textContent = `${round.frontNine}-${round.backNine}`;
     const tdStrokes = document.createElement("td");
     tdStrokes.textContent = round.totalStrokes;
     const tdPutts = document.createElement("td");
     tdPutts.textContent = round.totalPutts;
-    const tdCost = document.createElement("td");
-    tdCost.textContent = round.cost ?? "";
 
-    tr.append(tdDate, tdCourse, tdCombo, tdStrokes, tdPutts, tdCost);
+    tr.append(tdDate, tdCourse, tdCombo, tdStrokes, tdPutts);
     tr.addEventListener("click", () => showRoundDetail(round.id));
     tbody.appendChild(tr);
   }
@@ -1228,11 +793,8 @@ function showRoundDetail(roundId) {
   const totalPutts = scores.reduce((sum, s) => sum + s.putts, 0);
 
   document.getElementById("round-detail-summary").textContent =
-    `${round.playedOn} · ${round.courseName}${round.nineCombo ? " (" + round.nineCombo + ")" : ""}` +
+    `${round.playedOn} · ${round.courseName} (${round.frontNine}-${round.backNine})` +
     ` · Total Strokes ${totalStrokes} · Total Putts ${totalPutts}` +
-    (round.weather ? ` · Weather ${round.weather}` : "") +
-    (round.roundType ? ` · Type ${round.roundType}` : "") +
-    (round.cost != null ? ` · Cost ₩${round.cost.toLocaleString("en-US")}` : "") +
     (round.memo ? ` · Memo ${round.memo}` : "");
 
   const holesTbody = document.getElementById("round-detail-holes-tbody");
@@ -1407,11 +969,7 @@ function initTabBar() {
   switchTab("tab-round");
 }
 
-ensureSeedCoursesRegistered();
-migrateBenyujiHueToNew();
-migrateBenyujiNineOrder();
-cleanupOutOfComboHoleScores();
-initCourseScreen();
+resetOldSchemaIfNeeded();
 initRoundScreen();
 initScoreScreen();
 initCsvExportScreen();
