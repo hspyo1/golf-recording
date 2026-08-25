@@ -41,9 +41,26 @@
     font-size: 15px; color: #666; border-radius: 0;
   }
   #tab-bar .tab-bar-btn.active { color: #2e7d32; font-weight: bold; }
+
+  /* 앱 잠금 (F-11) — 서버 없이 로컬 비밀번호만으로 가볍게 접근을 막는다 */
+  #lock-screen {
+    display: none; position: fixed; inset: 0; background: #fff; z-index: 1000;
+    padding: 24px 16px; max-width: 720px; margin: 0 auto;
+  }
+  #lock-screen-error { color: #c00; }
+  #lock-settings-section input[type="password"] { width: 200px; }
 </style>
 </head>
 <body>
+
+<div id="lock-screen">
+  <h2>Locked</h2>
+  <p>Enter the password to open this app.</p>
+  <input type="password" id="lock-screen-input" placeholder="Password">
+  <button type="button" id="lock-screen-submit">Unlock</button>
+  <p id="lock-screen-error" style="display:none">Incorrect password.</p>
+</div>
+
 <h1>my golf scores</h1>
 
 <div id="tab-round" class="tab-page" style="display:none">
@@ -204,6 +221,22 @@
   <button type="button" id="csv-export-btn">Export All Rounds to CSV</button>
 </section>
 
+<section id="lock-settings-section">
+  <h2>App Lock</h2>
+  <p id="lock-status-text"></p>
+
+  <div id="lock-set-form" style="display:none">
+    <input type="password" id="lock-new-password" placeholder="New password">
+    <button type="button" id="lock-set-btn">Set Password</button>
+  </div>
+
+  <div id="lock-change-form" style="display:none">
+    <div><input type="password" id="lock-current-password" placeholder="Current password"></div>
+    <div><input type="password" id="lock-updated-password" placeholder="New password (leave blank to remove lock)"></div>
+    <button type="button" id="lock-change-btn">Update</button>
+  </div>
+</section>
+
 </div>
 
 <nav id="tab-bar">
@@ -232,6 +265,8 @@ function emptyData() {
     },
     rounds: [],
     holeScores: [],
+    password: null, // 앱 잠금(F-11) 비밀번호. 서버가 없어 이 기기의 localStorage에만 저장된다.
+    unlocked: false, // 이 브라우저에서 한 번 인증했는지 — 다음부터는 다시 묻지 않는다.
   };
 }
 
@@ -240,6 +275,10 @@ function loadData() {
   if (!raw) return emptyData();
   const data = JSON.parse(raw);
   if (data.schemaVersion !== SCHEMA_VERSION) return emptyData();
+  // password/unlocked는 나중에 추가된 필드라, 스키마 버전을 올리지 않고도(=기존 라운드
+  // 데이터를 초기화하지 않고도) 없으면 기본값을 채워 넣는다.
+  if (data.password === undefined) data.password = null;
+  if (data.unlocked === undefined) data.unlocked = false;
   return data;
 }
 
@@ -263,6 +302,25 @@ function nextId(data, table) {
   const id = data.nextId[table];
   data.nextId[table] = id + 1;
   return id;
+}
+
+// ---------- 앱 잠금 (F-11) ----------
+
+function getLockState() {
+  const data = loadData();
+  return { password: data.password, unlocked: data.unlocked };
+}
+
+function setPassword(newPassword) {
+  const data = loadData();
+  data.password = newPassword || null;
+  saveData(data);
+}
+
+function markUnlocked() {
+  const data = loadData();
+  data.unlocked = true;
+  saveData(data);
 }
 
 // ---------- rounds ----------
@@ -1003,6 +1061,86 @@ function initCsvExportScreen() {
   });
 }
 
+// ---------- 화면: 앱 잠금 (F-11) ----------
+
+function renderLockSettings() {
+  const { password } = getLockState();
+  const statusText = document.getElementById("lock-status-text");
+  const setForm = document.getElementById("lock-set-form");
+  const changeForm = document.getElementById("lock-change-form");
+  if (password) {
+    statusText.textContent = "A password is set on this device.";
+    setForm.style.display = "none";
+    changeForm.style.display = "block";
+  } else {
+    statusText.textContent = "No password set — anyone using this device's browser can open the app.";
+    setForm.style.display = "block";
+    changeForm.style.display = "none";
+  }
+}
+
+function initLockSettingsScreen() {
+  document.getElementById("lock-set-btn").addEventListener("click", () => {
+    const pw = document.getElementById("lock-new-password").value;
+    if (!pw) {
+      alert("Enter a password.");
+      return;
+    }
+    setPassword(pw);
+    markUnlocked();
+    document.getElementById("lock-new-password").value = "";
+    alert("Password set.");
+    renderLockSettings();
+  });
+
+  document.getElementById("lock-change-btn").addEventListener("click", () => {
+    const { password } = getLockState();
+    const current = document.getElementById("lock-current-password").value;
+    if (current !== password) {
+      alert("Current password is incorrect.");
+      return;
+    }
+    const updated = document.getElementById("lock-updated-password").value;
+    setPassword(updated);
+    document.getElementById("lock-current-password").value = "";
+    document.getElementById("lock-updated-password").value = "";
+    alert(updated ? "Password updated." : "Password removed.");
+    renderLockSettings();
+  });
+
+  renderLockSettings();
+}
+
+// 비밀번호가 설정돼 있고 이 브라우저에서 아직 인증 전이면 전체 화면을 덮어 막는다.
+// 서버 없이 로컬 비밀번호만 비교하는 방식이라 강한 보안은 아니고, 낯선 사람이 우연히
+// 열어보는 것을 막는 정도의 가벼운 잠금이다.
+function initAppLock() {
+  const { password, unlocked } = getLockState();
+  if (password && !unlocked) {
+    document.getElementById("lock-screen").style.display = "block";
+  }
+
+  function tryUnlock() {
+    const input = document.getElementById("lock-screen-input");
+    const { password: current } = getLockState();
+    if (input.value === current) {
+      markUnlocked();
+      document.getElementById("lock-screen").style.display = "none";
+      document.getElementById("lock-screen-error").style.display = "none";
+      input.value = "";
+    } else {
+      document.getElementById("lock-screen-error").style.display = "block";
+      input.value = "";
+      input.focus();
+    }
+  }
+
+  document.getElementById("lock-screen-submit").addEventListener("click", tryUnlock);
+  document.getElementById("lock-screen-input").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") tryUnlock();
+  });
+}
+
 // ---------- 화면: 하단 탭 전환 ----------
 
 function switchTab(tabId) {
@@ -1023,9 +1161,11 @@ function initTabBar() {
 }
 
 resetOldSchemaIfNeeded();
+initAppLock();
 initRoundScreen();
 initScoreScreen();
 initCsvExportScreen();
+initLockSettingsScreen();
 initTabBar();
 renderRoundList();
 
