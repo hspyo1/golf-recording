@@ -200,7 +200,7 @@
 
 <section id="export-section">
   <h2>Export</h2>
-  <p>Export every recorded round, including hole-by-hole details (date, golf club, nines, totals, memo, and each hole's par/strokes/putts/fairway hit/GIR), as a CSV file you can open in Excel or Google Sheets.</p>
+  <p>Downloads "golf_rounds.csv" (a summary of every round) plus one CSV per round with its hole-by-hole details, named "date_GolfClub.csv". The most recent round's file downloads right after the summary. Your browser may ask permission to download multiple files.</p>
   <button type="button" id="csv-export-btn">Export All Rounds to CSV</button>
 </section>
 
@@ -360,48 +360,67 @@ function csvEscape(value) {
   return s;
 }
 
-// 라운드 요약 정보와 홀별 스코어(Round Details)를 한 표로 합쳐, 스코어가 있는 라운드는
-// 홀 수만큼 행을 만든다(긴 형식). 스코어가 아직 없는 라운드도 요약 정보만으로 한 행 나온다.
 function exportRoundsToCsv() {
   const rounds = getAllRounds();
-  const header = [
-    "Date", "Golf Club", "Front Nine", "Back Nine", "Total Strokes", "Total Putts", "Memo",
-    "Nine", "Hole", "Par", "Strokes", "Putts", "Fairway Hit", "GIR",
-  ];
-  const rows = [];
-  for (const r of rounds) {
-    const roundColumns = [r.playedOn, r.courseName, r.frontNine, r.backNine, r.totalStrokes, r.totalPutts, r.memo];
-    const scores = getHoleScores(r.id);
-    if (scores.length === 0) {
-      rows.push([...roundColumns, "", "", "", "", "", "", ""]);
-      continue;
-    }
-    for (const s of scores) {
-      rows.push([
-        ...roundColumns,
-        s.nineName,
-        s.holeNo,
-        s.par,
-        s.strokes,
-        s.putts,
-        s.par === 3 ? "N/A" : (s.fairwayHit ? "O" : "X"),
-        s.gir ? "O" : "X",
-      ]);
-    }
-  }
+  const header = ["Date", "Golf Club", "Nines", "Total Strokes", "Total Putts", "Memo"];
+  const rows = rounds.map((r) => [
+    r.playedOn,
+    r.courseName,
+    `${r.frontNine}-${r.backNine}`,
+    r.totalStrokes,
+    r.totalPutts,
+    r.memo,
+  ]);
   const csv = [header, ...rows].map((row) => row.map(csvEscape).join(",")).join("\n");
   return "﻿" + csv; // 엑셀 한글 깨짐 방지용 BOM
 }
 
-function downloadRoundsCsv() {
-  const csv = exportRoundsToCsv();
+// 라운드 1건의 홀별 스코어(Round Details)만 따로 CSV로 만든다. 파일 이름을
+// "일자_골프장명.csv"로 지어, 실제 엑셀 시트 탭처럼 라운드별로 구분해 내려받기 위함
+// (CSV는 한 파일에 여러 시트를 담을 수 없어 파일을 나누는 방식으로 대신한다).
+function exportRoundDetailCsv(round) {
+  const scores = getHoleScores(round.id);
+  const header = ["Nine", "Hole", "Par", "Strokes", "Putts", "Fairway Hit", "GIR"];
+  const rows = scores.map((s) => [
+    s.nineName,
+    s.holeNo,
+    s.par,
+    s.strokes,
+    s.putts,
+    s.par === 3 ? "N/A" : (s.fairwayHit ? "O" : "X"),
+    s.gir ? "O" : "X",
+  ]);
+  const csv = [header, ...rows].map((row) => row.map(csvEscape).join(",")).join("\n");
+  return "﻿" + csv; // 엑셀 한글 깨짐 방지용 BOM
+}
+
+// 파일명에 쓸 수 없는 문자(\ / : * ? " < > |)를 밑줄로 바꾼다.
+function csvFilenameSafe(text) {
+  return String(text).replace(/[\\/:*?"<>|]/g, "_").trim() || "untitled";
+}
+
+function downloadCsvFile(csv, filename) {
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "golf_rounds.csv";
+  a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+function downloadRoundsCsv() {
+  downloadCsvFile(exportRoundsToCsv(), "golf_rounds.csv");
+}
+
+// 최근 라운드부터 순서대로(getAllRounds가 최근순 정렬) 라운드별 상세 CSV를 내려받는다 —
+// golf_rounds.csv 바로 다음으로 받아지는 파일이 가장 최근 라운드가 되게 하기 위함.
+async function downloadRoundDetailCsvFiles() {
+  const rounds = getAllRounds().filter((r) => getHoleScores(r.id).length > 0);
+  for (const r of rounds) {
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    downloadCsvFile(exportRoundDetailCsv(r), `${r.playedOn}_${csvFilenameSafe(r.courseName)}.csv`);
+  }
 }
 
 // ---------- 화면: 라운드 신규 등록 (F-02) ----------
@@ -974,12 +993,13 @@ function renderStatsTab() {
 // ---------- 화면: CSV 내보내기 (F-07) ----------
 
 function initCsvExportScreen() {
-  document.getElementById("csv-export-btn").addEventListener("click", () => {
+  document.getElementById("csv-export-btn").addEventListener("click", async () => {
     if (getAllRounds().length === 0) {
       alert("No rounds to export.");
       return;
     }
     downloadRoundsCsv();
+    await downloadRoundDetailCsvFiles();
   });
 }
 
