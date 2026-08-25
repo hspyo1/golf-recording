@@ -297,8 +297,9 @@
 
 <section id="export-section">
   <h2>Export</h2>
-  <p>Downloads "golf_rounds.csv" (a summary of every round) plus one CSV per round with its hole-by-hole details, named "date_GolfClub.csv". The most recent round's file downloads right after the summary. Your browser may ask permission to download multiple files.</p>
+  <p>Downloads "golf_rounds.csv" (a summary of every round) plus one CSV per round with its hole-by-hole details, named "date_GolfClub.csv". The most recent round's file downloads right after the summary. Your browser may ask permission to download multiple files. On phones that support it, "Share CSV Files" opens your device's share sheet so you can send the files straight to Mail (or any app) without downloading them first.</p>
   <button type="button" id="csv-export-btn">Export All Rounds to CSV</button>
+  <button type="button" id="csv-share-btn" style="display:none">Share CSV Files (Mail, etc.)</button>
 </section>
 
 <section id="lock-settings-section">
@@ -558,6 +559,40 @@ async function downloadRoundDetailCsvFiles() {
   for (const r of rounds) {
     await new Promise((resolve) => setTimeout(resolve, 200));
     downloadCsvFile(exportRoundDetailCsv(r), `${r.playedOn}_${csvFilenameSafe(r.courseName)}.csv`);
+  }
+}
+
+// golf_rounds.csv + 라운드별 상세 CSV를 File 객체 목록으로 만든다.
+// 폰의 공유 시트(F-14, navigator.share)로 그대로 넘겨 메일 앱 등에 첨부하기 위함.
+function buildExportCsvFiles() {
+  const files = [new File([exportRoundsToCsv()], "golf_rounds.csv", { type: "text/csv" })];
+  const rounds = getAllRounds().filter((r) => getHoleScores(r.id).length > 0);
+  for (const r of rounds) {
+    const filename = `${r.playedOn}_${csvFilenameSafe(r.courseName)}.csv`;
+    files.push(new File([exportRoundDetailCsv(r)], filename, { type: "text/csv" }));
+  }
+  return files;
+}
+
+// 이 브라우저가 파일을 첨부해 공유 시트를 열 수 있는지 확인한다(대부분 PC 브라우저는 지원 안 함).
+function supportsFileShare() {
+  if (!navigator.canShare) return false;
+  try {
+    return navigator.canShare({ files: [new File(["test"], "test.csv", { type: "text/csv" })] });
+  } catch (e) {
+    return false;
+  }
+}
+
+async function shareCsvFiles() {
+  if (getAllRounds().length === 0) {
+    alert("No rounds to export.");
+    return;
+  }
+  try {
+    await navigator.share({ files: buildExportCsvFiles(), title: "Golf Rounds CSV" });
+  } catch (e) {
+    if (e.name !== "AbortError") alert("Could not open the share sheet.");
   }
 }
 
@@ -1139,6 +1174,12 @@ function initCsvExportScreen() {
     downloadRoundsCsv();
     await downloadRoundDetailCsvFiles();
   });
+
+  // 파일 첨부 공유를 지원하는 브라우저(대부분 폰)에서만 버튼을 보여준다.
+  if (supportsFileShare()) {
+    document.getElementById("csv-share-btn").style.display = "inline-block";
+    document.getElementById("csv-share-btn").addEventListener("click", shareCsvFiles);
+  }
 }
 
 // ---------- 화면: 앱 잠금 (F-11) ----------
