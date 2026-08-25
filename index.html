@@ -4,51 +4,119 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>my golf scores</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <style>
-  body { font-family: sans-serif; max-width: 720px; margin: 20px auto; padding: 0 12px 76px; }
-  section { margin-bottom: 32px; }
-  table { border-collapse: collapse; width: 100%; margin-top: 8px; }
-  th, td { border: 1px solid #ccc; padding: 4px 6px; text-align: left; font-size: 14px; }
-  input[type="text"], input[type="number"] { width: 90px; box-sizing: border-box; font-size: 16px; }
-  select, button { font-size: 16px; padding: 6px 10px; }
-  .row-actions button { margin-right: 4px; }
+  /* "Caddie Dark" 배색 — 실외 눈부심 대비 다크 배경 + 라임 포인트 컬러 (2026-08-25 디자인 결정) */
+  :root {
+    --bg: #14181A;
+    --surface: #1E2427;
+    --surface-2: #242B2E;
+    --text: #F3F6F2;
+    --muted: #8FA097;
+    --accent: #C7F464;
+    --accent-ink: #10150F;
+    --accent-dim: #2A3320;
+    --border: #2E3630;
+    --danger: #FF7A59;
+    --font-display: "Unbounded", ui-sans-serif, system-ui, sans-serif;
+    --font-body: "Work Sans", ui-sans-serif, system-ui, sans-serif;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    font-family: var(--font-body); background: var(--bg); color: var(--text);
+    max-width: 720px; margin: 0 auto; padding: 20px 12px 92px;
+  }
+  h1, h2, h3 { font-family: var(--font-display); font-weight: 700; line-height: 1.3; }
+  h1 { font-size: 18px; letter-spacing: 0.01em; margin: 0 0 20px; }
+  h2 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 14px; }
+  h3 { font-size: 15px; margin: 0 0 12px; }
+
+  section {
+    background: var(--surface); border-radius: 18px; padding: 18px;
+    margin-bottom: 20px;
+  }
+
+  .table-scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; margin-top: 8px; font-variant-numeric: tabular-nums; }
+  th, td { border-bottom: 1px solid var(--border); padding: 9px 8px; text-align: left; font-size: 13.5px; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+
+  label { font-size: 13.5px; color: var(--muted); display: block; margin-bottom: 4px; }
+
+  input, select {
+    font-family: var(--font-body); font-size: 16px; color: var(--text);
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 9px 10px;
+  }
+  input[type="text"], input[type="number"], input[type="password"] { width: 100%; box-sizing: border-box; }
+  input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  input[type="number"] { -moz-appearance: textfield; }
+  input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent); }
+  #score-table input[type="number"] { width: 60px; text-align: center; }
+
+  button {
+    font-family: var(--font-body); font-weight: 600; font-size: 15px;
+    padding: 10px 16px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--surface-2); color: var(--text);
+  }
+  button[type="submit"], #csv-export-btn, #score-save-btn, #lock-screen-submit, #lock-set-btn, #lock-change-btn {
+    background: var(--accent); color: var(--accent-ink); border: none; font-weight: 700;
+  }
+  .row-actions button { margin-right: 6px; }
 
   /* 홀별 스코어 입력 — 모바일 카드 뷰 (F-10) */
-  #score-card { border: 1px solid #ccc; border-radius: 8px; padding: 16px; margin-top: 8px; }
-  #score-card-progress { color: #666; font-size: 14px; margin: 0 0 4px; }
-  #score-card-title { margin: 0 0 16px; }
-  .stepper-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-  .stepper-row .stepper-label { font-size: 15px; }
+  #score-card { background: var(--surface-2); border-radius: 16px; padding: 18px; margin-top: 8px; }
+  #score-card-progress { color: var(--muted); font-size: 13px; margin: 0 0 4px; }
+  #score-card-title { font-family: var(--font-display); font-size: 15px; margin: 0 0 18px; }
+  .stepper-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .stepper-row .stepper-label { font-size: 14px; color: var(--muted); font-weight: 500; }
   .stepper-row .stepper-controls { display: flex; align-items: center; gap: 10px; }
-  .stepper-btn { width: 44px; height: 44px; font-size: 22px; line-height: 1; border-radius: 6px; border: 1px solid #999; background: #f5f5f5; }
-  .stepper-value { min-width: 64px; text-align: center; font-size: 17px; }
-  .toggle-btn { min-width: 60px; height: 40px; font-size: 16px; border-radius: 6px; border: 1px solid #999; background: #f5f5f5; }
-  .toggle-btn.toggle-on { background: #2e7d32; color: #fff; border-color: #2e7d32; }
-  #score-card-nav { display: flex; justify-content: space-between; gap: 8px; margin-top: 16px; }
-  #score-card-nav button { flex: 1; padding: 12px; }
-  #score-view-toggle { margin: 8px 0; }
+  .stepper-btn {
+    width: 40px; height: 40px; font-size: 20px; line-height: 1; border-radius: 11px;
+    border: none; background: var(--accent-dim); color: var(--accent); font-weight: 700;
+  }
+  .stepper-value { min-width: 56px; text-align: center; font-size: 15.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .toggle-btn {
+    min-width: 64px; height: 40px; font-size: 13px; font-weight: 700; border-radius: 10px;
+    border: none; background: var(--accent-dim); color: var(--muted);
+  }
+  .toggle-btn.toggle-on { background: var(--accent); color: var(--accent-ink); }
+  #score-card-nav { display: flex; justify-content: space-between; gap: 8px; margin-top: 18px; }
+  #score-card-nav button { flex: 1; padding: 13px; border-radius: 11px; }
+  #score-card-next { background: var(--accent); color: var(--accent-ink); border: none; font-family: var(--font-display); font-weight: 700; }
+  #score-card-prev { background: var(--surface); }
+  #score-view-toggle { margin: 8px 0 4px; }
   #score-view-toggle button { margin-right: 8px; }
 
   /* 하단 탭바 — 화면 전환으로 한 번에 보이는 정보량을 줄여 폰 가독성을 높인다 */
   #tab-bar {
     position: fixed; left: 0; right: 0; bottom: 0;
-    display: flex; border-top: 1px solid #ccc; background: #fff;
+    display: flex; border-top: 1px solid var(--border); background: var(--surface);
     max-width: 720px; margin: 0 auto;
   }
   #tab-bar .tab-bar-btn {
     flex: 1; padding: 14px 4px; border: none; background: none;
-    font-size: 15px; color: #666; border-radius: 0;
+    font-size: 12.5px; color: var(--muted); border-radius: 0; font-weight: 600;
   }
-  #tab-bar .tab-bar-btn.active { color: #2e7d32; font-weight: bold; }
+  #tab-bar .tab-bar-btn.active { color: var(--accent); font-family: var(--font-display); font-weight: 700; }
 
   /* 앱 잠금 (F-11) — 서버 없이 로컬 비밀번호만으로 가볍게 접근을 막는다 */
   #lock-screen {
-    display: none; position: fixed; inset: 0; background: #fff; z-index: 1000;
+    display: none; position: fixed; inset: 0; background: var(--bg); z-index: 1000;
     padding: 24px 16px; max-width: 720px; margin: 0 auto;
   }
-  #lock-screen-error { color: #c00; }
-  #lock-settings-section input[type="password"] { width: 200px; }
+  #lock-screen h2 { color: var(--text); text-transform: none; font-size: 20px; }
+  #lock-screen p { color: var(--muted); }
+  #lock-screen-input { max-width: 220px; margin-right: 8px; }
+  #lock-screen-error { color: var(--danger); }
+  #lock-settings-section input[type="password"] { max-width: 240px; margin-bottom: 8px; }
 </style>
 </head>
 <body>
@@ -81,22 +149,26 @@
 
 <section id="round-list-section">
   <h2>Rounds</h2>
+  <div class="table-scroll">
   <table id="round-list-table">
     <thead>
       <tr><th>Date</th><th>Golf Club</th><th>Nines</th><th>Total Strokes</th><th>Total Putts</th><th></th></tr>
     </thead>
     <tbody id="round-list-tbody"></tbody>
   </table>
+  </div>
 
   <div id="round-detail" style="display:none">
     <h3>Round Details</h3>
     <p id="round-detail-summary"></p>
+    <div class="table-scroll">
     <table id="round-detail-holes">
       <thead>
         <tr><th>Nine</th><th>Hole</th><th>Par</th><th>Strokes</th><th>Putts</th><th>Fairway Hit</th><th>GIR</th></tr>
       </thead>
       <tbody id="round-detail-holes-tbody"></tbody>
     </table>
+    </div>
     <button type="button" id="round-detail-edit-btn">Edit Round</button>
     <button type="button" id="round-detail-delete-btn">Delete Round</button>
   </div>
@@ -169,12 +241,14 @@
     </div>
   </div>
 
+  <div class="table-scroll">
   <table id="score-table" style="display:none">
     <thead>
       <tr><th>Nine</th><th>Hole</th><th>Par</th><th>vs Par</th><th>Putts</th><th>Fairway Hit</th><th>GIR</th></tr>
     </thead>
     <tbody id="score-tbody"></tbody>
   </table>
+  </div>
   <p id="score-total" style="display:none"></p>
   <button type="button" id="score-save-btn" style="display:none">Save Scores</button>
 </section>
@@ -192,22 +266,28 @@
     <p id="stats-overview"></p>
 
     <h3>By Golf Club</h3>
+    <div class="table-scroll">
     <table id="stats-course-table">
       <thead><tr><th>Golf Club</th><th>Rounds</th><th>Avg Strokes</th><th>Avg Putts</th></tr></thead>
       <tbody id="stats-course-tbody"></tbody>
     </table>
+    </div>
 
     <h3>By Par</h3>
+    <div class="table-scroll">
     <table id="stats-par-table">
       <thead><tr><th>Par</th><th>Holes Played</th><th>Avg Strokes</th><th>Avg vs Par</th></tr></thead>
       <tbody id="stats-par-tbody"></tbody>
     </table>
+    </div>
 
     <h3>Recent Rounds</h3>
+    <div class="table-scroll">
     <table id="stats-trend-table">
       <thead><tr><th>Date</th><th>Golf Club</th><th>Strokes</th><th>Putts</th></tr></thead>
       <tbody id="stats-trend-tbody"></tbody>
     </table>
+    </div>
   </div>
 </section>
 
