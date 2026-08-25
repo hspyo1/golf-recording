@@ -53,11 +53,12 @@
 
   label { font-size: 13.5px; color: var(--muted); display: block; margin-bottom: 4px; }
 
-  input, select {
+  input, select, textarea {
     font-family: var(--font-body); font-size: 16px; color: var(--text);
     background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px;
     padding: 9px 10px;
   }
+  textarea { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; resize: vertical; }
   input[type="text"], input[type="number"], input[type="password"] { width: 100%; box-sizing: border-box; }
   input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
   input[type="number"]::-webkit-outer-spin-button,
@@ -324,6 +325,20 @@
   </div>
 </section>
 
+<section id="backup-section">
+  <h2>Backup &amp; Restore</h2>
+  <p>Some browsers/apps on this phone store data separately (for example, Safari and a "home screen" icon do not share data on iOS). Copy a backup here, then paste it into Restore on the other one to bring your data over.</p>
+
+  <h3>Backup</h3>
+  <button type="button" id="backup-copy-btn">Copy Backup to Clipboard</button>
+  <textarea id="backup-text" readonly rows="4" style="width:100%; margin-top:8px;" placeholder="Tap Copy Backup above to fill this in"></textarea>
+
+  <h3>Restore</h3>
+  <p>Pasting a backup below <strong>replaces all data currently in this browser/app.</strong></p>
+  <textarea id="restore-text" rows="4" style="width:100%" placeholder="Paste backup text here"></textarea>
+  <button type="button" id="restore-btn">Restore from Backup</button>
+</section>
+
 </div>
 
 <nav id="tab-bar">
@@ -408,6 +423,30 @@ function markUnlocked() {
   const data = loadData();
   data.unlocked = true;
   saveData(data);
+}
+
+// ---------- 백업 / 복원 ----------
+// 같은 기기에서도 브라우저(사파리)와 "홈 화면에 추가"한 앱이 localStorage를 따로 쓰는
+// 경우가 있어(iOS), 전체 데이터를 텍스트로 내보내/붙여넣어 옮길 수 있게 한다.
+
+function exportFullBackup() {
+  return JSON.stringify(loadData());
+}
+
+function restoreFromBackup(jsonText) {
+  let parsed;
+  try {
+    parsed = JSON.parse(jsonText);
+  } catch (e) {
+    throw new Error("That doesn't look like valid backup text.");
+  }
+  if (!parsed || !Array.isArray(parsed.rounds) || !Array.isArray(parsed.holeScores)) {
+    throw new Error("That doesn't look like a valid backup.");
+  }
+  if (parsed.schemaVersion !== SCHEMA_VERSION) {
+    throw new Error("This backup is from a different app version and can't be restored here.");
+  }
+  saveData(parsed);
 }
 
 // ---------- rounds ----------
@@ -1235,6 +1274,38 @@ function initLockSettingsScreen() {
   renderLockSettings();
 }
 
+// ---------- 화면: 백업 / 복원 ----------
+
+function initBackupScreen() {
+  document.getElementById("backup-copy-btn").addEventListener("click", async () => {
+    const json = exportFullBackup();
+    document.getElementById("backup-text").value = json;
+    try {
+      await navigator.clipboard.writeText(json);
+      alert("Backup copied to clipboard. Paste it into Restore on the other browser/app.");
+    } catch (e) {
+      alert("Couldn't copy automatically — the backup text is filled in below, select it and copy manually.");
+    }
+  });
+
+  document.getElementById("restore-btn").addEventListener("click", () => {
+    const text = document.getElementById("restore-text").value.trim();
+    if (!text) {
+      alert("Paste a backup first.");
+      return;
+    }
+    if (!confirm("Restoring will replace all data currently in this browser/app. Continue?")) return;
+    try {
+      restoreFromBackup(text);
+    } catch (e) {
+      alert(e.message);
+      return;
+    }
+    alert("Restored. Reloading...");
+    location.reload();
+  });
+}
+
 // 비밀번호가 설정돼 있고 이 브라우저에서 아직 인증 전이면 전체 화면을 덮어 막는다.
 // 서버 없이 로컬 비밀번호만 비교하는 방식이라 강한 보안은 아니고, 낯선 사람이 우연히
 // 열어보는 것을 막는 정도의 가벼운 잠금이다.
@@ -1290,6 +1361,7 @@ initRoundScreen();
 initScoreScreen();
 initCsvExportScreen();
 initLockSettingsScreen();
+initBackupScreen();
 initTabBar();
 renderRoundList();
 
