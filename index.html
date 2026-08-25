@@ -66,7 +66,7 @@
   <h2>Rounds</h2>
   <table id="round-list-table">
     <thead>
-      <tr><th>Date</th><th>Golf Club</th><th>Nines</th><th>Total Strokes</th><th>Total Putts</th></tr>
+      <tr><th>Date</th><th>Golf Club</th><th>Nines</th><th>Total Strokes</th><th>Total Putts</th><th></th></tr>
     </thead>
     <tbody id="round-list-tbody"></tbody>
   </table>
@@ -656,7 +656,10 @@ function loadScoreEditor(roundId) {
     };
   });
 
-  document.getElementById("score-round-info").textContent = formatRoundInfoLine(round);
+  const infoLine = formatRoundInfoLine(round);
+  document.getElementById("score-round-info").textContent = existing.length > 0
+    ? `${infoLine} · Scores already entered — edit below and tap Save Scores to update.`
+    : infoLine;
   document.getElementById("score-view-toggle").style.display = "block";
   document.getElementById("score-total").style.display = "block";
   document.getElementById("score-save-btn").style.display = "inline";
@@ -779,7 +782,19 @@ function renderRoundList() {
     const tdPutts = document.createElement("td");
     tdPutts.textContent = round.totalPutts;
 
-    tr.append(tdDate, tdCourse, tdCombo, tdStrokes, tdPutts);
+    const tdActions = document.createElement("td");
+    tdActions.className = "row-actions";
+    const editBtn = document.createElement("button");
+    editBtn.type = "button";
+    editBtn.textContent = "Edit";
+    editBtn.addEventListener("click", (e) => { e.stopPropagation(); startEditRound(round.id); });
+    const deleteBtn = document.createElement("button");
+    deleteBtn.type = "button";
+    deleteBtn.textContent = "Delete";
+    deleteBtn.addEventListener("click", (e) => { e.stopPropagation(); onDeleteRound(round.id); });
+    tdActions.append(editBtn, deleteBtn);
+
+    tr.append(tdDate, tdCourse, tdCombo, tdStrokes, tdPutts, tdActions);
     tr.addEventListener("click", () => showRoundDetail(round.id));
     tbody.appendChild(tr);
   }
