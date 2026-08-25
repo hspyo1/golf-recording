@@ -169,8 +169,9 @@
       <tbody id="round-detail-holes-tbody"></tbody>
     </table>
     </div>
-    <button type="button" id="round-detail-edit-btn">Edit Round</button>
-    <button type="button" id="round-detail-delete-btn">Delete Round</button>
+    <div style="display:flex; justify-content:flex-end;">
+      <button type="button" id="round-detail-delete-btn">Delete Round</button>
+    </div>
   </div>
 </section>
 
@@ -1041,7 +1042,6 @@ function showRoundDetail(roundId) {
     holesTbody.appendChild(tr);
   }
 
-  document.getElementById("round-detail-edit-btn").onclick = () => startEditRound(round.id);
   document.getElementById("round-detail-delete-btn").onclick = () => onDeleteRound(round.id);
 
   document.getElementById("round-detail").style.display = "block";
